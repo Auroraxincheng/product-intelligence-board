@@ -1,0 +1,3619 @@
+const state = {
+  token: localStorage.getItem("pib_token") || "",
+  role: localStorage.getItem("pib_role") || "",
+  selectedPmProfile: localStorage.getItem("pib_pm_profile") || "",
+  pmAccountId: localStorage.getItem("pib_pm_account") || "",
+  config: null,
+  dashboard: null,
+  selectedWeek: "",
+  period: "weekly",
+  pmViewMode: "owner",
+  pmViewProfile: "",
+  filters: {
+    status: "",
+    owner: "",
+    productArea: "",
+    segment: "",
+    track: "",
+    productWorkstream: "",
+    includeFutureDone: false,
+  },
+  boardView: localStorage.getItem("pib_board_view") || "product",
+  archiveItems: [],
+  archiveSearch: "",
+  view: "login",
+  modal: null,
+  detail: null,
+  guideOpen: false,
+  error: "",
+  modules: loadModuleData(),
+};
+
+const app = document.querySelector("#app");
+
+function loadModuleData() {
+  try {
+    return {
+      announcements: [],
+      marketing: [],
+      meetings: [],
+      ...JSON.parse(localStorage.getItem("pib_modules") || "{}"),
+    };
+  } catch {
+    return { announcements: [], marketing: [], meetings: [] };
+  }
+}
+
+function saveModuleData() {
+  localStorage.setItem("pib_modules", JSON.stringify(state.modules));
+}
+
+function api(path, options = {}) {
+  return fetch(path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+      ...(options.headers || {}),
+    },
+  }).then(async (response) => {
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      localStorage.clear();
+      Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null, detail: null, error: "Session expired. Please log in again." });
+      render();
+      throw new Error("Session expired. Please log in again.");
+    }
+    if (!response.ok) throw new Error(data.error || "Request failed.");
+    return data;
+  });
+}
+
+function canEdit() {
+  return ["pm_team", "pm_editor", "product_lead", "admin"].includes(state.role);
+}
+
+function canArchive() {
+  return ["product_lead", "admin"].includes(state.role);
+}
+
+function canAdmin() {
+  return state.role === "admin";
+}
+
+function canManageSavedModules() {
+  return ["product_lead", "admin"].includes(state.role);
+}
+
+function canManagePmm() {
+  return ["pmm", "product_lead", "admin"].includes(state.role);
+}
+
+function canManageModules() {
+  return ["pm_team", "pm_editor", "product_lead", "admin", "pmm"].includes(state.role);
+}
+
+function html(strings, ...values) {
+  return strings.reduce((acc, string, index) => acc + string + (values[index] ?? ""), "");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function formatDateTime(value) {
+  if (!value) return "Not updated";
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function displayWeek(week) {
+  return `W${String(week || "").split("-")[1] || ""}`;
+}
+
+function statusClass(status) {
+  const key = String(status || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+  if (key) return `status-${key}`;
+  return "";
+}
+
+function needsBlockerDelay(status) {
+  return status === "Blocked" || status === "Delay";
+}
+
+function linkLines(links = []) {
+  return links.map((link) => `${link.label || link.url} | ${link.url}`).join("\n");
+}
+
+function taskLines(tasks = []) {
+  return tasks.map((task) => task.title || task).join("\n");
+}
+
+const DEFAULT_WORKSTREAM_TITLE = "Overall update";
+
+function deriveProductWorkstream(itemOrTitle) {
+  if (typeof itemOrTitle === "object" && itemOrTitle?.productWorkstream) return itemOrTitle.productWorkstream;
+  const title = typeof itemOrTitle === "object" ? itemOrTitle?.title : itemOrTitle;
+  return String(title || "").split(/\s+[—–-]\s+/)[0]?.trim() || "";
+}
+
+function productWorkstreamOptions(productArea, segment, item = null) {
+  const values = (state.dashboard?.items || [])
+    .filter((candidate) => candidate.productArea === productArea && candidate.segment === segment)
+    .map((candidate) => deriveProductWorkstream(candidate))
+    .filter(Boolean);
+  if (item) values.push(deriveProductWorkstream(item));
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function itemDisplayParts(item) {
+  const product = deriveProductWorkstream(item);
+  const title = String(item?.title || "");
+  const escapedProduct = product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const prefixedDetail = product
+    ? title.replace(new RegExp(`^${escapedProduct}\\s+[—–-]\\s+`, "i"), "").trim()
+    : "";
+  const detail = prefixedDetail && prefixedDetail !== title ? prefixedDetail : title;
+  return {
+    product: product || title,
+    detail: detail && detail !== product ? detail : "",
+  };
+}
+
+function matchingProductWorkstreamOwner(productArea, segment, productWorkstream) {
+  return (state.dashboard?.items || []).find((item) =>
+    item.productArea === productArea
+    && item.segment === segment
+    && deriveProductWorkstream(item) === productWorkstream
+    && item.owner
+  )?.owner || "";
+}
+
+function allWeeklyItems() {
+  const items = [...(state.dashboard?.items || [])];
+  if (state.detail && !items.some((item) => item.id === state.detail.id)) items.unshift(state.detail);
+  return items;
+}
+
+function weeklySelectionOptions(selected = {}) {
+  const items = allWeeklyItems();
+  const productAreas = [...new Set(items.map((item) => item.productArea).filter(Boolean))];
+  const allowBlank = selected.allowBlank && !selected.item;
+  const productArea = selected.productArea || selected.item?.productArea || (allowBlank ? "" : productAreas[0]) || "";
+  const areaItems = items.filter((item) => item.productArea === productArea);
+  const segments = [...new Set(areaItems.map((item) => item.segment).filter(Boolean))];
+  const segment = selected.segment || selected.item?.segment || (allowBlank ? "" : segments[0]) || "";
+  const segmentItems = areaItems.filter((item) => item.segment === segment);
+  const tracks = [...new Set(segmentItems.map((item) => item.track).filter(Boolean))];
+  const track = selected.track || selected.item?.track || (allowBlank ? "" : tracks[0]) || "";
+  const productWorkstreams = [...new Set(segmentItems.map((item) => deriveProductWorkstream(item)).filter(Boolean))];
+  const productWorkstream = selected.productWorkstream || deriveProductWorkstream(selected.item) || (allowBlank ? "" : productWorkstreams[0]) || "";
+  const updateItems = segmentItems.filter((item) => deriveProductWorkstream(item) === productWorkstream);
+  return { productAreas, productArea, segments, segment, tracks, track, productWorkstreams, productWorkstream, updateItems };
+}
+
+function workstreamLabel(value) {
+  return String(value || "").trim() === "General" ? DEFAULT_WORKSTREAM_TITLE : String(value || "").trim();
+}
+
+function isPlaceholderWorkstream(value) {
+  return ["no", "none", "n/a", "na", "-", "无", "没有"].includes(String(value || "").trim().toLowerCase());
+}
+
+function workstreamsForItem(item, entry = null) {
+  const workstreams = [...(item?.workstreams || item?.subTasks || [])]
+    .map((workstream) => ({ ...workstream, title: workstreamLabel(workstream.title || workstream) }))
+    .filter((workstream) => workstream.title && !isPlaceholderWorkstream(workstream.title));
+  const entryWorkstreamTitle = workstreamLabel(entry?.workstreamTitle);
+  if (entryWorkstreamTitle && !isPlaceholderWorkstream(entryWorkstreamTitle) && !workstreams.some((workstream) => workstream.id === entry.workstreamId || workstream.title === entryWorkstreamTitle)) {
+    workstreams.push({ id: entry.workstreamId || entryWorkstreamTitle, title: entryWorkstreamTitle });
+  }
+  if (!workstreams.length) workstreams.push({ id: "overall-update", title: DEFAULT_WORKSTREAM_TITLE });
+  return workstreams;
+}
+
+function ownerProfiles() {
+  const accountProfiles = (state.config?.pmAccounts || []).map((account) => account.pmProfile).filter(Boolean);
+  const itemOwners = (state.dashboard?.items || []).map((item) => item.owner).filter(Boolean);
+  return [...new Set([...(state.config?.pmProfiles || []), ...accountProfiles, ...itemOwners])];
+}
+
+function dashboardItems() {
+  return state.dashboard?.items || [];
+}
+
+function uniqueDashboardValues(selector, filterFn = () => true) {
+  return [...new Set(dashboardItems().filter(filterFn).map(selector).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function availableProductAreas() {
+  return uniqueDashboardValues((item) => item.productArea);
+}
+
+function availableSegments() {
+  return uniqueDashboardValues(
+    (item) => item.segment,
+    (item) => !state.filters.productArea || item.productArea === state.filters.productArea,
+  );
+}
+
+function availableTracks() {
+  return uniqueDashboardValues(
+    (item) => item.track,
+    (item) => (!state.filters.productArea || item.productArea === state.filters.productArea) && (!state.filters.segment || item.segment === state.filters.segment),
+  );
+}
+
+function availableProductWorkstreams() {
+  if (state.dashboard?.filterOptions?.productWorkstreams) {
+    return state.dashboard.filterOptions.productWorkstreams;
+  }
+  return [...new Set((state.dashboard?.items || [])
+    .filter((item) => !state.filters.productArea || item.productArea === state.filters.productArea)
+    .filter((item) => !state.filters.segment || item.segment === state.filters.segment)
+    .filter((item) => !state.filters.track || item.track === state.filters.track)
+    .map((item) => item.productWorkstream || deriveProductWorkstream(item))
+    .filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+}
+
+async function init() {
+  try {
+    state.config = await api("/api/config");
+    state.modules = state.config.modules || state.modules;
+    state.selectedWeek = state.config.currentReportingWeek;
+    if (state.token) {
+      const session = await api("/api/session");
+      state.role = session.role;
+      state.selectedPmProfile = session.selectedPmProfile || "";
+      state.pmAccountId = session.pmAccountId || "";
+      state.config = await api("/api/config");
+      state.modules = state.config.modules || state.modules;
+      state.view = ["pm_team", "pm_editor"].includes(state.role) && !state.selectedPmProfile ? "login" : "dashboard";
+      if (state.view === "dashboard") await loadDashboard();
+    }
+    render();
+  } catch (error) {
+    if (window.location.protocol === "file:") {
+      renderOpenViaServerMessage();
+      return;
+    }
+    localStorage.clear();
+    state.token = "";
+    state.role = "";
+    state.selectedPmProfile = "";
+    state.view = "login";
+    state.error = error.message;
+    render();
+  }
+}
+
+async function loadDashboard() {
+  const params = new URLSearchParams({ week: state.selectedWeek, period: state.period });
+  Object.entries(state.filters).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+  });
+  const [dashboard, modules] = await Promise.all([
+    api(`/api/dashboard?${params.toString()}`),
+    api("/api/modules"),
+  ]);
+  state.dashboard = dashboard;
+  state.modules = modules;
+}
+
+async function loadModules() {
+  if (!state.token) return;
+  state.modules = await api("/api/modules");
+}
+
+async function loadArchiveFolder() {
+  if (!state.token) return;
+  const data = await api("/api/archived-items");
+  state.archiveItems = data.items || [];
+}
+
+function render() {
+  if (state.view === "login") {
+    document.querySelector(".role-guide")?.remove();
+    return renderLogin();
+  }
+  if (state.view === "profile") {
+    document.querySelector(".role-guide")?.remove();
+    return renderProfileSelection();
+  }
+  if (state.view === "pmManagement") renderPmManagement();
+  else if (state.view === "pmView") renderPmView();
+  else if (state.view === "adminSettings") renderPlaceholderPage("Admin / Settings", renderAdminSettingsContent());
+  else if (state.view === "archiveFolder") renderArchiveFolder();
+  else if (state.view === "productMarketing") renderProductMarketing();
+  else if (state.view === "meetings") renderMeetings();
+  else if (state.view === "capacity") renderPmCapacity();
+  else if (state.view === "reportExport") renderReportExport();
+  else renderDashboard();
+  mountRoleGuide();
+}
+
+function renderOpenViaServerMessage() {
+  app.innerHTML = html`
+    <main class="auth-shell">
+      <section class="auth-panel">
+        <h1>Product Intelligence Board</h1>
+        <p class="muted">This app needs the local backend server. Open it from localhost instead of the HTML file.</p>
+        <p><a href="http://127.0.0.1:3000">http://127.0.0.1:3000</a></p>
+      </section>
+    </main>
+  `;
+}
+
+function roleLabel(role = state.role) {
+  const labels = {
+    viewer: "Viewer",
+    pm_team: "PM Team",
+    pm_editor: "PM Team",
+    pmm: "PMM",
+    product_lead: "Product Lead",
+    admin: "Admin",
+  };
+  return labels[role] || role || "User";
+}
+
+function roleGuideConfig() {
+  const shared = [
+    "Use the reporting week selector to review past or current weekly board status.",
+    "Use filters to narrow by status, owner, product area, segment, track, or product/workstream.",
+    "Open Timeline on any card to see historical weekly entries without overwriting old updates.",
+  ];
+  const configs = {
+    viewer: {
+      title: "Viewer Guide",
+      steps: [
+        ...shared,
+        "Viewer can read the full shared board, announcements, meeting notes, PMM, and capacity sections.",
+      ],
+      actions: [
+        ["dashboard", "Open Dashboard"],
+        ["pmView", "Open PM View"],
+      ],
+    },
+    pm_team: {
+      title: "PM Team Guide",
+      steps: [
+        ...shared,
+        "Add Weekly Update for an existing item when reporting progress for this week.",
+        "Create New Update Item only when the product/workstream item does not exist yet.",
+        "Owner and submitted-by are separate: owner can be changed, submitted-by uses your PM profile.",
+      ],
+      actions: [
+        ["weekly", "Add Weekly Update"],
+        ["item", "Create New Update Item"],
+        ["announcement", "Add Announcement"],
+        ["meeting", "Upload Meeting Note"],
+        ["pmView", "Open PM View"],
+      ],
+    },
+    pmm: {
+      title: "PMM Guide",
+      steps: [
+        ...shared,
+        "Use PMM assets to track launch materials, PM review, revisions, and final links.",
+        "Relate PMM assets back to Update Items when the launch content belongs to a product item.",
+      ],
+      actions: [
+        ["marketing", "Add PMM Asset"],
+        ["productMarketing", "Open PMM Section"],
+        ["dashboard", "Open Dashboard"],
+      ],
+    },
+    product_lead: {
+      title: "Product Lead Guide",
+      steps: [
+        ...shared,
+        "Use Management to maintain PM accounts and track/category taxonomy.",
+        "Archive outdated items with a reason; archived records remain searchable in Archive Folder.",
+        "Update PM Capacity from the capacity panel and export reports for review.",
+      ],
+      actions: [
+        ["weekly", "Add Weekly Update"],
+        ["item", "Create New Update Item"],
+        ["management", "PM Management"],
+        ["archive", "Archive Folder"],
+        ["capacity", "PM Capacity"],
+        ["report", "Report Export"],
+        ["announcement", "Add Announcement"],
+        ["meeting", "Upload Meeting Note"],
+      ],
+    },
+    admin: {
+      title: "Admin Guide",
+      steps: [
+        ...shared,
+        "Use Admin / Settings to rotate role passcodes. Current passcodes are not exposed in the UI.",
+        "Admin can correct or delete records when cleanup is needed.",
+        "Use Archive Folder and Report Export for review and backup checks.",
+      ],
+      actions: [
+        ["settings", "Admin / Settings"],
+        ["archive", "Archive Folder"],
+        ["report", "Report Export"],
+        ["weekly", "Add Weekly Update"],
+        ["item", "Create New Update Item"],
+      ],
+    },
+  };
+  return configs[state.role] || configs.pm_team;
+}
+
+function mountRoleGuide() {
+  if (!state.token || ["login", "profile"].includes(state.view)) return;
+  document.querySelector(".role-guide")?.remove();
+  document.body.insertAdjacentHTML("beforeend", renderRoleGuide());
+  bindRoleGuideEvents();
+}
+
+function renderRoleGuide() {
+  const guide = roleGuideConfig();
+  return html`
+    <aside class="role-guide ${state.guideOpen ? "open" : ""}">
+      <button class="role-guide-toggle" id="role-guide-toggle" title="${state.guideOpen ? "Close guide" : "Open guide"}">
+        <span>?</span>
+        <strong>Guide</strong>
+      </button>
+      ${state.guideOpen ? html`
+        <section class="role-guide-panel">
+          <header>
+            <div>
+              <span class="section-kicker">${escapeHtml(roleLabel())}</span>
+              <h2>${escapeHtml(guide.title)}</h2>
+            </div>
+            <button class="secondary" id="role-guide-close">Close</button>
+          </header>
+          <ol>
+            ${guide.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+          </ol>
+          <div class="role-guide-actions">
+            ${guide.actions.map(([action, label]) => `<button type="button" data-guide-action="${escapeHtml(action)}">${escapeHtml(label)}</button>`).join("")}
+          </div>
+        </section>
+      ` : ""}
+    </aside>
+  `;
+}
+
+function bindRoleGuideEvents() {
+  document.querySelector("#role-guide-toggle")?.addEventListener("click", () => {
+    state.guideOpen = !state.guideOpen;
+    render();
+  });
+  document.querySelector("#role-guide-close")?.addEventListener("click", () => {
+    state.guideOpen = false;
+    render();
+  });
+  document.querySelectorAll("[data-guide-action]").forEach((button) => {
+    button.addEventListener("click", () => handleGuideAction(button.dataset.guideAction));
+  });
+}
+
+async function handleGuideAction(action) {
+  state.guideOpen = false;
+  if (action === "weekly") state.modal = { type: "weekly", itemId: "", direct: false };
+  else if (action === "item") state.modal = { type: "item", item: null };
+  else if (action === "announcement") state.modal = { type: "announcement", announcement: null };
+  else if (action === "meeting") state.modal = { type: "meeting", meeting: null };
+  else if (action === "marketing") state.modal = { type: "marketing", asset: null };
+  else if (action === "capacity") state.modal = { type: "capacity" };
+  else if (action === "dashboard") {
+    state.view = "dashboard";
+    await loadDashboard();
+  } else if (action === "pmView") {
+    state.view = "pmView";
+    await loadDashboard();
+  } else if (action === "management") {
+    state.view = "pmManagement";
+    await loadDashboard();
+  } else if (action === "archive") {
+    state.view = "archiveFolder";
+    await loadArchiveFolder();
+  } else if (action === "settings") {
+    state.view = "adminSettings";
+  } else if (action === "report") {
+    state.view = "reportExport";
+    await loadDashboard();
+    await loadModules();
+  } else if (action === "productMarketing") {
+    state.view = "productMarketing";
+    await loadDashboard();
+    await loadModules();
+  }
+  render();
+  if (action === "weekly") loadPreviousReference();
+}
+
+function renderLogin() {
+  app.innerHTML = html`
+    <main class="auth-shell">
+      <section class="auth-panel">
+        <h1>Product Intelligence Board</h1>
+        <p class="muted">Choose a role, then enter the passcode. For now every role uses 000.</p>
+        <form id="login-form" class="grid">
+          <label>Role
+            <select name="role" id="login-role" required>
+              ${state.config.roles.map((role) => `<option value="${role}">${escapeHtml(role)}</option>`).join("")}
+            </select>
+          </label>
+          <label id="pm-account-row" hidden>PM Team Account
+            <select name="accountId">
+              ${state.config.pmAccounts
+                .filter((account) => account.active)
+                .map((account) => `<option value="${escapeHtml(account.accountId)}">${escapeHtml(account.accountId)} - ${escapeHtml(account.pmProfile)}</option>`)
+                .join("")}
+            </select>
+          </label>
+          <label>Passcode <input name="passcode" type="password" autocomplete="current-password" required /></label>
+          <button type="submit">Continue</button>
+          ${state.error ? `<div class="error">${escapeHtml(state.error)}</div>` : ""}
+        </form>
+      </section>
+    </main>
+  `;
+  const roleSelect = document.querySelector("#login-role");
+  const accountRow = document.querySelector("#pm-account-row");
+  const syncAccountField = () => {
+    accountRow.hidden = roleSelect.value !== "pm_team";
+    accountRow.querySelector("select").disabled = roleSelect.value !== "pm_team";
+  };
+  roleSelect.addEventListener("change", syncAccountField);
+  syncAccountField();
+  document.querySelector("#login-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    state.error = "";
+    try {
+      const data = await api("/api/login", {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(new FormData(event.target))),
+      });
+      state.token = data.token;
+      state.role = data.role;
+      state.selectedPmProfile = data.selectedPmProfile || "";
+      state.pmAccountId = data.pmAccountId || "";
+      localStorage.setItem("pib_token", state.token);
+      localStorage.setItem("pib_role", state.role);
+      if (state.selectedPmProfile) localStorage.setItem("pib_pm_profile", state.selectedPmProfile);
+      else localStorage.removeItem("pib_pm_profile");
+      if (state.pmAccountId) localStorage.setItem("pib_pm_account", state.pmAccountId);
+      else localStorage.removeItem("pib_pm_account");
+      state.config = await api("/api/config");
+      state.modules = state.config.modules || state.modules;
+      state.view = "dashboard";
+      await loadDashboard();
+    } catch (error) {
+      state.error = error.message;
+    }
+    render();
+  });
+}
+
+function renderProfileSelection() {
+  app.innerHTML = html`
+    <main class="auth-shell">
+      <section class="auth-panel">
+        <h1>Select PM Profile</h1>
+        <p class="muted">This is the active business profile for owner defaults, submitted by, and last updated by. It is not a login account.</p>
+        <form id="profile-form" class="grid">
+          <label>Active PM Profile
+            <select name="pmProfile" required>
+              ${state.config.pmProfiles.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}
+            </select>
+          </label>
+          <button type="submit">Enter Dashboard</button>
+        </form>
+        ${state.error ? `<div class="error">${escapeHtml(state.error)}</div>` : ""}
+      </section>
+    </main>
+  `;
+  document.querySelector("#profile-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    state.error = "";
+    try {
+      const session = await api("/api/session/profile", {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(new FormData(event.target))),
+      });
+      state.token = session.token || state.token;
+      state.selectedPmProfile = session.selectedPmProfile;
+      localStorage.setItem("pib_token", state.token);
+      localStorage.setItem("pib_pm_profile", state.selectedPmProfile);
+      state.view = "dashboard";
+      await loadDashboard();
+    } catch (error) {
+      state.error = error.message;
+    }
+    render();
+  });
+}
+
+function renderDashboard() {
+  const cards = state.dashboard?.cards || {};
+  const items = state.dashboard?.items || [];
+  app.innerHTML = html`
+    <main class="board-page">
+      <header class="board-topbar">
+        <div class="brand-row">
+          <img class="brand-logo cbi-logo" src="/assets/CBI-logo-F-1.svg" alt="CBI" />
+          <div class="brand-divider"></div>
+          <img class="brand-logo advance-logo" src="/assets/ADVANCE%20CBP%20logo-F.svg" alt="ADVANCE.CBP" />
+          <div class="brand-divider"></div>
+          <div class="product-title">
+            <span>PRODUCT UPDATE</span>
+            <strong>Product Intelligence Board</strong>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="secondary" data-page="dashboard">Dashboard</button>
+          <button class="secondary" data-page="pmView">PM View</button>
+          ${["product_lead", "admin"].includes(state.role) ? `<button class="secondary" data-page="archiveFolder">Archive Folder</button>` : ""}
+          ${state.role === "product_lead" ? `<button class="secondary" data-page="pmManagement">Management</button>` : ""}
+          ${state.role === "admin" ? `<button class="secondary" data-page="adminSettings">Admin / Settings</button>` : ""}
+          ${["product_lead", "admin"].includes(state.role) ? `<button class="secondary" data-page="reportExport">Report Export</button>` : ""}
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+        <aside class="week-panel">
+          <div class="week-label">Reporting Week</div>
+          <strong>${periodTitle()}</strong>
+          <div class="period-range">${escapeHtml(viewRangeLabel())}: ${escapeHtml(periodRangeLabel())}</div>
+          <div class="period-nav">
+            <button id="prev-period" title="Previous reporting week">‹</button>
+            <button id="today-period" title="Today">Today</button>
+            <button id="next-period" title="Next reporting week">›</button>
+          </div>
+          <input id="week-selector" value="${escapeHtml(state.selectedWeek)}" pattern="\\d{4}-\\d{2}" />
+          <div class="period-toggle">
+            ${["weekly", "bi-weekly", "monthly", "quarterly"].map((period) => `<button class="${state.period === period ? "active" : ""}" data-period="${period}">${periodLabel(period)}</button>`).join("")}
+          </div>
+        </aside>
+      </header>
+
+      <section class="board-shell">
+        <div class="board-context muted">${renderActorLine()}</div>
+        ${canEdit() ? renderEditorQuickActions() : ""}
+        <section class="board-summary">
+          ${renderSummaryCard("Total Updates", cards["Total Updates"] ?? 0, items)}
+          ${state.config.statuses.map((status) => renderSummaryCard(status, cards[status] ?? 0, items.filter((item) => item.status === status))).join("")}
+          <div class="summary-card board-week-card">
+            <span class="summary-label">Current Week</span>
+            <div class="week-stat">
+              <strong>${periodTitle()}</strong>
+              <span>${cards["Current Week"] ?? 0} updates</span>
+            </div>
+            <div class="week-stat-range">${escapeHtml(viewRangeLabel())} · ${escapeHtml(periodRangeLabel())}</div>
+          </div>
+        </section>
+
+        ${renderAnnouncementsPanel()}
+
+        <section class="filters board-filters" id="filters-panel">
+          <label>Status
+            <select id="filter-status">
+              <option value="">All</option>
+              ${state.config.statuses.map((status) => `<option value="${escapeHtml(status)}" ${state.filters.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Owner
+            <select id="filter-owner">
+              <option value="">All</option>
+              ${ownerProfiles().map((name) => `<option value="${escapeHtml(name)}" ${state.filters.owner === name ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Product Area
+            <select id="filter-product-area">
+              <option value="">All</option>
+              ${availableProductAreas().map((area) => `<option value="${escapeHtml(area)}" ${state.filters.productArea === area ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Segment
+            <select id="filter-segment">
+              <option value="">All</option>
+              ${availableSegments().map((segment) => `<option value="${escapeHtml(segment)}" ${state.filters.segment === segment ? "selected" : ""}>${escapeHtml(segment)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Track / Category
+            <select id="filter-track">
+              <option value="">All</option>
+              ${availableTracks().map((track) => `<option value="${escapeHtml(track)}" ${state.filters.track === track ? "selected" : ""}>${escapeHtml(track)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Products / Workstreams
+            <select id="filter-product-workstream">
+              <option value="">All</option>
+              ${availableProductWorkstreams().map((name) => `<option value="${escapeHtml(name)}" ${state.filters.productWorkstream === name ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
+            </select>
+          </label>
+          <div class="filter-reset-row"><button type="button" class="secondary" id="reset-filters">Reset Filters</button></div>
+        </section>
+
+        ${renderBoardViewControls()}
+        ${state.filters.productWorkstream ? renderProductWorkstreamTimeline(items) : ""}
+        ${state.boardView === "item" ? renderItemView(items) : renderProductBoardView(items)}
+        ${renderDashboardModuleStack(items)}
+      </section>
+      ${state.modal ? renderModal() : ""}
+    </main>
+  `;
+  bindDashboardEvents();
+}
+
+function periodTitle() {
+  return displayWeek(state.selectedWeek);
+}
+
+function viewRangeLabel() {
+  if (state.period === "weekly") return "Week";
+  if (state.period === "bi-weekly") return "Bi-Weekly";
+  if (state.period === "monthly") return "Month";
+  return "Quarter";
+}
+
+function periodLabel(period) {
+  if (period === "weekly") return "Weekly";
+  if (period === "bi-weekly") return "Bi-Weekly";
+  if (period === "monthly") return "Monthly";
+  return "Quarterly";
+}
+
+function periodRangeLabel() {
+  if (state.dashboard?.periodStart && state.dashboard?.periodEnd) {
+    return `${formatShortDate(state.dashboard.periodStart)} - ${formatShortDate(state.dashboard.periodEnd)}`;
+  }
+  const start = weekStartDate(state.selectedWeek);
+  return `${formatShortDate(start)} - ${formatShortDate(addDays(start, 6))}`;
+}
+
+function weekStartDate(week) {
+  const [year, number] = String(week).split("-").map(Number);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const week1Monday = new Date(jan4);
+  week1Monday.setUTCDate(jan4.getUTCDate() - jan4Day + 1);
+  week1Monday.setUTCDate(week1Monday.getUTCDate() + (number - 1) * 7);
+  return week1Monday;
+}
+
+function weekFromDate(date) {
+  const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((target - yearStart) / 86400000 + 1) / 7);
+  return `${target.getUTCFullYear()}-${String(week).padStart(2, "0")}`;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function shiftSelectedWeek(direction) {
+  const start = weekStartDate(state.selectedWeek);
+  return weekFromDate(addDays(start, direction * 7));
+}
+
+function periodAnchorDate() {
+  return addDays(weekStartDate(state.selectedWeek), 3);
+}
+
+function formatShortDate(value) {
+  const date = value instanceof Date ? value : new Date(`${value}T00:00:00Z`);
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(date);
+}
+
+function formatMonth(date) {
+  return new Intl.DateTimeFormat("en-GB", { month: "short" }).format(date);
+}
+
+function formatQuarter(date) {
+  return `Q${Math.floor(date.getUTCMonth() / 3) + 1}`;
+}
+
+function renderActorLine() {
+  if (["pm_team", "pm_editor"].includes(state.role)) {
+    return `Role: ${escapeHtml(state.role)} · PM Account: ${escapeHtml(state.pmAccountId)} · PM Profile: ${escapeHtml(state.selectedPmProfile)}`;
+  }
+  if (state.role === "product_lead") return "Role: product_lead · Scope: All PM updates";
+  return `Role: ${escapeHtml(state.role)} · Scope: All visible updates`;
+}
+
+function renderEditorQuickActions() {
+  const actor = state.selectedPmProfile || (state.role === "product_lead" ? "Product Lead" : "Admin");
+  return html`
+    <section class="editor-quick-actions">
+      <div>
+        <span class="section-kicker">Update Workflow</span>
+        <strong>Add a weekly update to an existing item, or create a new item if it does not exist yet.</strong>
+      </div>
+      <div class="quick-action-buttons">
+        <button id="quick-weekly">Add Weekly Update</button>
+        <button class="secondary" id="quick-item">Create New Update Item</button>
+      </div>
+    </section>
+  `;
+}
+
+function renderSummaryCard(label, value, scopedItems) {
+  const cbi = scopedItems.filter((item) => item.productArea === "CBI").length;
+  const cbp = scopedItems.filter((item) => item.productArea === "CBP").length;
+  const ai = scopedItems.filter((item) => item.productArea === "AI Agents").length;
+  const riskClass = needsBlockerDelay(label) ? "summary-risk" : "";
+  return html`
+    <div class="summary-card ${statusClass(label)} ${riskClass}">
+      <span class="summary-label">${escapeHtml(label)}</span>
+      <strong>${value}</strong>
+      <div class="summary-chips"><span class="summary-chip-cbi">CBI ${cbi}</span><span class="summary-chip-cbp">CBP ${cbp}</span><span class="summary-chip-ai">AI ${ai}</span></div>
+    </div>
+  `;
+}
+
+function renderAnnouncementsPanel() {
+  const announcements = (state.modules.announcements || [])
+    .filter((announcement) => !announcement.archived)
+    .filter((announcement) => !announcement.week || announcement.week === state.selectedWeek)
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  return html`
+    <section class="announcements-panel">
+      <div class="announcements-head">
+        <div>
+          <span class="section-kicker">This Week</span>
+          <strong>Announcements</strong>
+        </div>
+        ${canManageModules() ? `<button class="secondary" id="quick-announcement">Add Announcement</button>` : ""}
+      </div>
+      ${announcements.length
+        ? `<div class="announcement-list">${announcements.map((announcement) => html`
+            <article>
+              <strong>${escapeHtml(announcement.title)}</strong>
+              <p>${escapeHtml(announcement.body)}</p>
+              <small>${escapeHtml(announcement.type || "Info")} · ${escapeHtml(announcement.productArea || "All areas")} · ${escapeHtml(announcement.week || "All weeks")} · ${escapeHtml(announcement.createdBy || "Team")}</small>
+              ${renderLinks(announcement.relatedLinks || [])}
+              ${canManageSavedModules() ? `<div class="row"><button class="secondary" data-edit-announcement="${announcement.id}">Edit</button><button class="danger" data-delete-announcement="${announcement.id}">Delete</button></div>` : ""}
+            </article>
+          `).join("")}</div>`
+        : `<p class="muted">No announcements for this reporting week.</p>`}
+    </section>
+  `;
+}
+
+function renderDashboardModuleStack(items) {
+  return html`
+    <section class="updates-below-modules">
+      ${renderDashboardCapacityPanel(items)}
+      ${renderDashboardMeetingsPanel()}
+      ${renderDashboardPmmPanel()}
+    </section>
+  `;
+}
+
+function renderCollapsibleModule(kicker, title, action, body, extraClass = "", openByDefault = false) {
+  return html`
+    <details class="dashboard-collapsible ${extraClass}" ${openByDefault ? "open" : ""}>
+      <summary>
+        <span>
+          <span class="section-kicker">${escapeHtml(kicker)}</span>
+          <strong>${escapeHtml(title)}</strong>
+        </span>
+        <span class="collapse-hint">Expand</span>
+      </summary>
+      <section class="announcements-panel">
+        <div class="announcements-head">
+          <div>
+            <span class="section-kicker">${escapeHtml(kicker)}</span>
+            <strong>${escapeHtml(title)}</strong>
+          </div>
+          ${action || ""}
+        </div>
+        ${body}
+      </section>
+    </details>
+  `;
+}
+
+function renderDashboardMeetingsPanel() {
+  const meetings = (state.modules.meetings || [])
+    .filter((meeting) => !meeting.reportingWeek || meeting.reportingWeek === state.selectedWeek)
+    .sort((a, b) => String(b.meetingDate || b.createdAt || "").localeCompare(String(a.meetingDate || a.createdAt || "")));
+  return renderCollapsibleModule(
+    "This Week",
+    "Meeting Notes",
+    canManageModules() ? `<button class="secondary" id="quick-meeting">Upload Meeting Note</button>` : "",
+    meetings.length
+        ? `<div class="announcement-list module-list">${meetings.map(renderMeetingNoteCard).join("")}</div>`
+        : `<p class="muted">No meeting notes for this reporting week.</p>`,
+  );
+}
+
+function renderDashboardPmmPanel() {
+  const assets = state.modules.marketing || [];
+  return renderCollapsibleModule(
+    "PMM",
+    "Launch / GTM Board",
+    canManagePmm() ? `<button class="secondary" id="quick-marketing">Add PMM Asset</button>` : "",
+    assets.length
+        ? `<div class="announcement-list module-list">${assets.slice(0, 6).map(renderMarketingAssetCard).join("")}</div>`
+        : `<p class="muted">No PMM assets yet.</p>`,
+  );
+}
+
+function capacityRowsFromDashboard(items) {
+  const saved = state.modules.capacity?.records || [];
+  if (saved.length) return saved;
+  return ownerProfiles()
+    .map((owner) => {
+      const ownerItems = items.filter((item) => item.owner === owner);
+      if (!ownerItems.length) return null;
+      return {
+        id: owner,
+        pmName: owner,
+        status: "Active",
+        roleScope: [...new Set(ownerItems.map((item) => item.productArea))].join(", "),
+        q1: ownerItems.filter((item) => item.status !== "Done").length,
+        q2: 0,
+        q3: 0,
+        q4: 0,
+        notes: "Auto workload count from current dashboard.",
+      };
+    })
+    .filter(Boolean);
+}
+
+function renderDashboardCapacityPanel(items) {
+  const rows = capacityRowsFromDashboard(items);
+  const summary = state.modules.capacity?.summary || {};
+  const breakdown = capacityBreakdownDefaults(rows, summary);
+  const totalPd = summary.totalPd ?? rows.reduce((sum, row) => sum + Number(row.q1 || 0), 0);
+  const activePm = summary.activePm ?? rows.filter((row) => String(row.status).toLowerCase() === "active").length;
+  const averagePd = summary.averagePd ?? (activePm ? Math.round((totalPd / activePm) * 10) / 10 : 0);
+  return renderCollapsibleModule(
+    "Capacity",
+    "PM Timesheet",
+    state.role === "product_lead" ? `<button class="secondary" id="quick-capacity">Update Capacity Data</button>` : "",
+    html`
+      <div class="capacity-timesheet">
+        ${renderCapacityStatCard("Total Team Timesheet Recorded", `${totalPd} PD`, summary.totalQuarters || { q1: 822, q2: 0, q3: 0, q4: 0 }, breakdown.totalBreakdown)}
+        ${renderCapacityStatCard("Total Active PM Count", activePm, summary.activeQuarters || { q1: 11, q2: 13, q3: 12, q4: 12 }, breakdown.activeBreakdown)}
+        ${renderCapacityStatCard("Average PD per Active PM", `${averagePd} PD`, summary.averageQuarters || { q1: 74.7, q2: 0, q3: 0, q4: 0 }, breakdown.averageBreakdown)}
+      </div>
+      <div class="capacity-card-grid">
+        ${rows.length ? rows.map(renderCapacityRow).join("") : `<div class="empty-track">No capacity data yet.</div>`}
+      </div>
+    `,
+    "capacity-panel",
+    true,
+  );
+}
+
+function capacityBusinessBucket(row) {
+  const scope = String(row.roleScope || row.productArea || "").toLowerCase();
+  if (/cbp|advance/.test(scope)) return "cbp";
+  if (/\baai\b|\bai\b|agent/.test(scope)) return "aai";
+  return "cbi";
+}
+
+function hasCapacityQuarterValue(row, quarter) {
+  const value = row?.[quarter];
+  return value !== "" && value !== null && value !== undefined && value !== "-";
+}
+
+function emptyCapacityBreakdown() {
+  return {
+    q1: { cbi: 0, cbp: 0, aai: 0 },
+    q2: { cbi: 0, cbp: 0, aai: 0 },
+    q3: { cbi: 0, cbp: 0, aai: 0 },
+    q4: { cbi: 0, cbp: 0, aai: 0 },
+  };
+}
+
+function normalizeCapacityBreakdown(breakdown) {
+  const normalized = emptyCapacityBreakdown();
+  for (const quarter of ["q1", "q2", "q3", "q4"]) {
+    for (const bucket of ["cbi", "cbp", "aai"]) {
+      normalized[quarter][bucket] = parseCapacityNumber(breakdown?.[quarter]?.[bucket]);
+    }
+  }
+  return normalized;
+}
+
+function calculateCapacityBreakdown(rows = []) {
+  const totalBreakdown = emptyCapacityBreakdown();
+  const activeBreakdown = emptyCapacityBreakdown();
+  const averageBreakdown = emptyCapacityBreakdown();
+  for (const row of rows) {
+    const bucket = capacityBusinessBucket(row);
+    const isActive = String(row.status || "Active").toLowerCase() === "active";
+    for (const quarter of ["q1", "q2", "q3", "q4"]) {
+      if (!hasCapacityQuarterValue(row, quarter)) continue;
+      totalBreakdown[quarter][bucket] += parseCapacityNumber(row[quarter]);
+      if (isActive) activeBreakdown[quarter][bucket] += 1;
+    }
+  }
+  for (const quarter of ["q1", "q2", "q3", "q4"]) {
+    for (const bucket of ["cbi", "cbp", "aai"]) {
+      averageBreakdown[quarter][bucket] = activeBreakdown[quarter][bucket]
+        ? Math.round((totalBreakdown[quarter][bucket] / activeBreakdown[quarter][bucket]) * 10) / 10
+        : 0;
+    }
+  }
+  return { totalBreakdown, activeBreakdown, averageBreakdown };
+}
+
+function capacityBreakdownDefaults(rows = capacityRowsFromDashboard(state.dashboard?.items || []), summary = state.modules.capacity?.summary || {}) {
+  const calculated = calculateCapacityBreakdown(rows);
+  return {
+    totalBreakdown: summary.totalBreakdown ? normalizeCapacityBreakdown(summary.totalBreakdown) : calculated.totalBreakdown,
+    activeBreakdown: summary.activeBreakdown ? normalizeCapacityBreakdown(summary.activeBreakdown) : calculated.activeBreakdown,
+    averageBreakdown: summary.averageBreakdown ? normalizeCapacityBreakdown(summary.averageBreakdown) : calculated.averageBreakdown,
+  };
+}
+
+function capacitySummaryDefaults(rows = capacityRowsFromDashboard(state.dashboard?.items || [])) {
+  const summary = state.modules.capacity?.summary || {};
+  const totalPd = summary.totalPd ?? rows.reduce((sum, row) => sum + Number(row.q1 || 0), 0);
+  const activePm = summary.activePm ?? rows.filter((row) => String(row.status).toLowerCase() === "active").length;
+  const averagePd = summary.averagePd ?? (activePm ? Math.round((totalPd / activePm) * 10) / 10 : 0);
+  const breakdown = capacityBreakdownDefaults(rows, summary);
+  return {
+    totalPd,
+    activePm,
+    averagePd,
+    totalQuarters: summary.totalQuarters || { q1: totalPd, q2: 0, q3: 0, q4: 0 },
+    activeQuarters: summary.activeQuarters || { q1: activePm, q2: activePm, q3: activePm, q4: activePm },
+    averageQuarters: summary.averageQuarters || { q1: averagePd, q2: 0, q3: 0, q4: 0 },
+    ...breakdown,
+  };
+}
+
+function renderCapacityStatBreakdown(breakdown = {}, unit = "") {
+  return html`
+    <dl class="capacity-quarter-breakdown">
+      ${["cbi", "cbp", "aai"].map((key) => html`
+        <div class="capacity-breakdown-${key}">
+          <dt>${key.toUpperCase()}</dt>
+          <dd>${escapeHtml(breakdown?.[key] ?? 0)}${unit ? ` ${escapeHtml(unit)}` : ""}</dd>
+        </div>
+      `).join("")}
+    </dl>
+  `;
+}
+
+function renderCapacityStatCard(label, value, quarters = {}, breakdown = {}, unit = "") {
+  return html`
+    <article class="capacity-stat-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      <div class="capacity-stat-quarters">
+        ${["q1", "q2", "q3", "q4"].map((key) => html`
+          <div class="${key === "q3" ? "active" : ""}">
+            <span>${key.toUpperCase()}</span>
+            <strong>${escapeHtml(quarters[key] ?? 0)}</strong>
+            ${renderCapacityStatBreakdown(breakdown?.[key], unit)}
+          </div>
+        `).join("")}
+      </div>
+    </article>
+  `;
+}
+
+function renderCapacityRow(row) {
+  const initials = row.initials || ownerInitials(row.pmName);
+  const status = row.status || "Active";
+  const statusKey = String(status).toLowerCase();
+  const roleScope = row.roleScope || "-";
+  const shouldAppendActiveSince = row.activeSince && !/active since|w\.e\.f\./i.test(roleScope);
+  return html`
+    <article class="capacity-person-card">
+      <div class="capacity-person-head">
+        <span class="capacity-avatar">${escapeHtml(initials)}</span>
+        <div>
+          <strong>${escapeHtml(row.pmName)}</strong>
+          <small>${escapeHtml(roleScope)} ${shouldAppendActiveSince ? `· active since ${escapeHtml(row.activeSince)}` : ""}</small>
+        </div>
+        <span class="capacity-status status-${escapeHtml(statusKey)}">${escapeHtml(status)}</span>
+      </div>
+      <div class="capacity-person-quarters">
+        ${renderCapacityQuarter("Q1", row.q1, row.q1Total || 64, row.q1Alert)}
+        ${renderCapacityQuarter("Q2", row.q2, row.q2Total || 65, row.q2Alert)}
+        ${renderCapacityQuarter("Q3", row.q3, row.q3Total || 66, row.q3Alert)}
+        ${renderCapacityQuarter("Q4", row.q4, row.q4Total || 66, row.q4Alert)}
+      </div>
+      ${row.notes ? `<small class="capacity-note">${escapeHtml(row.notes)}</small>` : ""}
+    </article>
+  `;
+}
+
+function renderCapacityQuarter(label, used, total, alert = false) {
+  const hasValue = used !== "" && used !== null && used !== undefined;
+  const ratio = hasValue && Number(total) ? Math.min(100, Math.max(0, (Number(used) / Number(total)) * 100)) : 0;
+  return html`
+    <div class="capacity-person-quarter ${alert ? "over" : ""}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${hasValue ? `${escapeHtml(used)}/${escapeHtml(total)}` : "-"}</strong>
+      <i><b style="width:${ratio}%"></b></i>
+    </div>
+  `;
+}
+
+function renderMeetingNoteCard(note) {
+  const relatedItem = (state.dashboard?.items || []).find((item) => item.id === note.relatedUpdateItemId);
+  return html`
+    <article>
+      <strong>${escapeHtml(note.title)}</strong>
+      <small>${escapeHtml(note.meetingType || "Meeting")} · ${escapeHtml(note.productArea || relatedItem?.productArea || "All areas")} · ${escapeHtml(note.meetingDate || note.reportingWeek || "-")} · Owner ${escapeHtml(note.owner || "-")}</small>
+      ${relatedItem ? `<small>Related update: ${escapeHtml(relatedItem.title)}</small>` : ""}
+      <p>${escapeHtml(note.notes || note.agenda || "")}</p>
+      ${note.decisions ? `<p><strong>Decisions:</strong> ${escapeHtml(note.decisions)}</p>` : ""}
+      ${note.actionItems?.length ? `<div class="task-list">${note.actionItems.map((action) => `<span>${escapeHtml(action.title || action)}</span>`).join("")}</div>` : ""}
+      ${renderLinks(note.attachments || [])}
+      ${canManageSavedModules() ? `<div class="row"><button class="secondary" data-edit-meeting="${note.id}">Edit</button><button class="danger" data-delete-meeting="${note.id}">Delete</button></div>` : ""}
+    </article>
+  `;
+}
+
+function renderMarketingAssetCard(asset) {
+  const relatedItem = (state.dashboard?.items || []).find((item) => item.id === (asset.relatedUpdateItemId || asset.launchItemId));
+  const links = [
+    asset.draftLink ? { label: "Draft", url: asset.draftLink } : null,
+    asset.internalVersionLink ? { label: "Internal", url: asset.internalVersionLink } : null,
+    asset.finalVersionLink || asset.link ? { label: "Final", url: asset.finalVersionLink || asset.link } : null,
+  ].filter(Boolean);
+  return html`
+    <article>
+      <strong>${escapeHtml(asset.title)}</strong>
+      <small>${escapeHtml(asset.productArea || relatedItem?.productArea || "No product area")} · ${escapeHtml(asset.type || asset.channel || "No type")} · Owner ${escapeHtml(asset.owner || "No owner")} · Reviewer ${escapeHtml(asset.pmReviewer || "-")}</small>
+      ${relatedItem ? `<small>Related update: ${escapeHtml(relatedItem.title)}</small>` : ""}
+      ${asset.description || asset.notes ? `<p>${escapeHtml(asset.description || asset.notes)}</p>` : ""}
+      ${asset.pmFeedback ? `<p><strong>PM feedback:</strong> ${escapeHtml(asset.pmFeedback)}</p>` : ""}
+      ${links.length ? renderLinks(links) : ""}
+      <small>Target ${escapeHtml(asset.targetCompletionDate || "-")} · Completed ${escapeHtml(asset.completedDate || "-")} · Updated by ${escapeHtml(asset.lastUpdatedBy || asset.createdBy || "-")}</small>
+      <span class="module-status">${escapeHtml(asset.status || "Backlog")}</span>
+      ${canManagePmm() ? `<div class="row"><button class="secondary" data-edit-marketing="${asset.id}">Edit</button><button class="danger" data-delete-marketing="${asset.id}">Delete</button></div>` : ""}
+    </article>
+  `;
+}
+
+function renderBoardViewControls() {
+  return html`
+    <section class="board-view-controls">
+      <div>
+        <span class="section-kicker">View By</span>
+        <strong>${state.boardView === "item" ? "Update Items" : "All Updates"}</strong>
+      </div>
+      <div class="view-toggle">
+        <button class="${state.boardView === "product" ? "active" : ""}" data-board-view="product">All</button>
+        <button class="${state.boardView === "item" ? "active" : ""}" data-board-view="item">Items</button>
+      </div>
+    </section>
+  `;
+}
+
+function visibleProductAreas(items) {
+  if (state.filters.productArea) return [state.filters.productArea];
+  const preferredOrder = ["CBI", "CBP", "AI Agents"];
+  return preferredOrder.filter((area) => state.config.productAreas.includes(area));
+}
+
+function hasBoardFilters() {
+  return Boolean(state.filters.status || state.filters.owner || state.filters.productArea || state.filters.segment || state.filters.track || state.filters.productWorkstream);
+}
+
+function renderProductBoardView(items) {
+  const areas = visibleProductAreas(items);
+  if (state.filters.productArea) {
+    return html`
+      <div class="board-layout single-board-layout focused-board-layout">
+        <div class="main-board">
+          ${renderProductAreaBoard(state.filters.productArea, items, false)}
+        </div>
+      </div>
+    `;
+  }
+  return html`
+    <div class="board-layout single-board-layout">
+      <div class="main-board">
+        ${areas.map((area) => renderProductAreaBoard(area, items)).join("")}
+        ${!areas.length ? `<div class="empty">No matching product boards.</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderProductAreaBoard(productArea, allItems, compact = false) {
+  const segments = state.config.segmentsByArea[productArea] || [];
+  const areaItems = allItems.filter((item) => item.productArea === productArea);
+  const focused = state.filters.productArea === productArea;
+  const renderedSegments = segments
+    .map((segment) => renderSegmentColumn(productArea, segment, areaItems, compact))
+    .filter(Boolean);
+  return html`
+    <section class="product-area-board ${compact ? "compact-area" : ""} ${focused ? "focused-area" : ""}">
+      <header class="area-header">
+        <div>
+          ${renderAreaBrandMark(productArea)}
+          <strong>${escapeHtml(areaTitle(productArea))}</strong>
+        </div>
+        <span class="muted">${areaItems.length} items</span>
+      </header>
+      <div class="segment-grid ${compact ? "compact-segments" : ""} ${focused ? "focused-segments" : ""}">
+        ${renderedSegments.length ? renderedSegments.join("") : `<div class="empty-track">No matching updates</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function areaTitle(productArea) {
+  if (productArea === "CBI") return "CBI - Credit Bureau Indonesia";
+  if (productArea === "CBP") return "CBP - Credit Bureau Platform";
+  return "AI Agents - ID, PH & SG";
+}
+
+function renderAreaBrandMark(productArea) {
+  if (productArea === "CBI") {
+    return `<span class="area-brand-mark area-brand-cbi"><img src="/assets/CBI-logo-F-1.svg" alt="CBI" /></span>`;
+  }
+  if (productArea === "CBP") {
+    return `<span class="area-brand-mark area-brand-cbp"><img src="/assets/ADVANCE%20CBP%20logo-F.svg" alt="ADVANCE.CBP" /></span>`;
+  }
+  return `<span class="area-brand-mark area-brand-ai"><span>AI</span></span>`;
+}
+
+function renderSegmentColumn(productArea, segment, areaItems, compact) {
+  const segmentItems = areaItems.filter((item) => item.segment === segment);
+  const seededTracks = state.config.tracksByAreaSegment[`${productArea}::${segment}`] || [];
+  const tracks = [...new Set([...seededTracks, ...segmentItems.map((item) => item.track).filter(Boolean)])];
+  if (hasBoardFilters() && !segmentItems.length) return "";
+  const renderedTracks = tracks
+    .map((track) => renderTrackGroup(track, segmentItems.filter((item) => item.track === track), compact))
+    .filter(Boolean);
+  return html`
+    <section class="segment-column ${segmentClass(segment)}">
+      <header class="segment-header">
+        ${renderSegmentBrandMark(productArea, segment)}
+        <div><strong>${escapeHtml(segment)}</strong><small>${escapeHtml(segmentMarketLabel(productArea))}</small></div>
+      </header>
+      <div class="track-stack">
+        ${renderedTracks.length ? renderedTracks.join("") : `<div class="empty-track">No matching updates</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function segmentMarketLabel(productArea) {
+  if (productArea === "CBP") return "PH";
+  if (productArea === "AI Agents") return "ID, PH & SG";
+  return "ID";
+}
+
+function segmentBadge(segment) {
+  if (segment === "B2B") return "B2B";
+  if (segment === "SME") return "SME";
+  if (segment === "D2C") return "D2C";
+  if (segment === "AI Agents") return "AI";
+  return segment.slice(0, 3).toUpperCase();
+}
+
+function renderSegmentBrandMark(productArea, segment) {
+  if (segment === "SME") {
+    return `<span class="segment-brand-mark segment-brand-sme"><img src="/assets/SME%20Bureau%20logo_Primary%20(3).svg" alt="SME Bureau" /></span>`;
+  }
+  if (segment === "D2C") {
+    return `<span class="segment-brand-mark segment-brand-d2c"><img src="/assets/SkorKu_Logo_Primary.svg" alt="SkorKu" /></span>`;
+  }
+  if (productArea === "CBP") {
+    return `<span class="segment-brand-mark segment-brand-cbp"><img src="/assets/ADVANCE%20CBP%20logo-F.svg" alt="ADVANCE.CBP" /></span>`;
+  }
+  if (segment === "AI Agents") {
+    return `<span class="segment-brand-mark segment-brand-ai"><span>AI</span></span>`;
+  }
+  return `<span class="segment-brand-mark segment-brand-cbi"><img src="/assets/CBI-logo-F-1.svg" alt="CBI" /></span>`;
+}
+
+function segmentClass(segment) {
+  if (segment === "B2B") return "segment-b2b";
+  if (segment === "SME") return "segment-sme";
+  if (segment === "D2C") return "segment-d2c";
+  if (segment === "AI Agents") return "segment-ai";
+  return "";
+}
+
+function renderTrackGroup(track, items, compact) {
+  if (!items.length) return "";
+  return html`
+    <section class="track-group">
+      <header class="track-header">
+        <span>${escapeHtml(track)}</span>
+      </header>
+      <div class="board-card-stack">
+        ${items.map((item) => renderBoardCard(item, compact)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderItemView(items) {
+  const groups = itemViewGroups(items);
+  return html`
+    <section class="item-view">
+      <header class="item-view-head">
+        <div>
+          <span class="section-kicker">Update Items</span>
+          <strong>${items.length} matching item${items.length === 1 ? "" : "s"}</strong>
+        </div>
+      </header>
+      <div class="item-group-list">
+        ${items.length ? groups.map(renderItemGroup).join("") : `<div class="empty">No matching update items.</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function itemViewGroups(items) {
+  if (!state.filters.productArea) {
+    return state.config.productAreas
+      .map((area) => ({ label: areaTitle(area), badge: area === "AI Agents" ? "AI" : area, items: items.filter((item) => item.productArea === area) }))
+      .filter((group) => group.items.length);
+  }
+  if (!state.filters.segment) {
+    return (state.config.segmentsByArea[state.filters.productArea] || [])
+      .map((segment) => ({ label: segment, badge: segmentBadge(segment), items: items.filter((item) => item.segment === segment) }))
+      .filter((group) => group.items.length);
+  }
+  return [{ label: "Matching Update Items", badge: "All", items }];
+}
+
+function renderItemGroup(group) {
+  return html`
+    <section class="item-group-card">
+      <header class="item-group-head">
+        <div><span>${escapeHtml(group.badge)}</span><strong>${escapeHtml(group.label)}</strong></div>
+        <small>${group.items.length} item${group.items.length === 1 ? "" : "s"}</small>
+      </header>
+      <div class="item-list">
+        ${group.items.map(renderItemRow).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderItemRow(item) {
+  const latest = item.latestWeeklyUpdate;
+  const display = itemDisplayParts(item);
+  return html`
+    <article class="item-row-card ${segmentClass(item.segment)} ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
+      <div class="item-row-main">
+        <div>
+          <h3>${escapeHtml(display.product)}</h3>
+          ${item.isQaIssue ? `<span class="qa-issue-label">QA Issue</span>` : ""}
+          ${display.detail ? `<div class="board-card-subtitle">${escapeHtml(display.detail)}</div>` : ""}
+          <div class="item-row-path">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</div>
+        </div>
+        <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+      </div>
+      <div class="item-row-grid">
+        <div><span>Owner</span><strong>${escapeHtml(item.owner)}</strong></div>
+        <div><span>Target</span><strong>${escapeHtml(item.targetCompletionDate)}</strong></div>
+        <div><span>Updates</span><strong>${item.updatesThisWeek}</strong></div>
+        <div><span>Lifecycle</span><strong>${escapeHtml(item.lifecycleState || lifecycleState(item))}</strong></div>
+        <div><span>Links</span><strong>${escapeHtml(linkSummary(item.relatedLinks))}</strong></div>
+        <div><span>Workstreams</span><strong>${escapeHtml(workstreamSummary(item))}</strong></div>
+        <div><span>Last Updated By</span><strong>${escapeHtml(item.lastUpdatedBy || "-")}</strong></div>
+        <div><span>Last Updated At</span><strong>${escapeHtml(formatDateTime(item.lastUpdatedAt))}</strong></div>
+      </div>
+      <div class="item-row-update">
+        <span>Latest Update</span>
+        ${renderLatestUpdateText(latest)}
+      </div>
+      <div class="board-card-actions">
+        <button class="secondary" data-detail="${item.id}">Timeline</button>
+        ${canEdit() ? `<button class="secondary" data-edit="${item.id}">Edit Item</button><button data-weekly="${item.id}">Add Update</button>` : ""}
+        ${canAdmin() ? `<button class="danger" data-delete-update="${item.id}">Delete</button>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderProductWorkstreamTimeline(items) {
+  const productItems = items
+    .filter((item) => (item.productWorkstream || deriveProductWorkstream(item)) === state.filters.productWorkstream)
+    .sort((a, b) => a.productArea.localeCompare(b.productArea) || a.segment.localeCompare(b.segment) || a.track.localeCompare(b.track) || a.title.localeCompare(b.title));
+  return html`
+    <section class="product-timeline-panel">
+      <header class="product-timeline-head">
+        <div>
+          <span class="section-kicker">Product / Workstream</span>
+          <strong>${escapeHtml(state.filters.productWorkstream)}</strong>
+          <p class="muted">${productItems.length} update item${productItems.length === 1 ? "" : "s"} across the selected reporting view.</p>
+        </div>
+      </header>
+      <div class="product-timeline-grid">
+        ${productItems.length ? productItems.map(renderProductTimelineItem).join("") : `<div class="empty">No matching update items for this Product / Workstream.</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function renderProductTimelineItem(item) {
+  const display = itemDisplayParts(item);
+  const entries = [...(item.timelineEntries || item.weeklyUpdatesThisPeriod || [])]
+    .sort((a, b) => String(b.reportingWeek || "").localeCompare(String(a.reportingWeek || "")) || String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
+  return html`
+    <article class="product-timeline-item ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
+      <header>
+        <div>
+          <span class="item-row-path">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</span>
+          ${item.isQaIssue ? `<span class="qa-issue-label">QA Issue</span>` : ""}
+          <h3>${escapeHtml(display.detail || item.title)}</h3>
+        </div>
+        <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+      </header>
+      <div class="meta product-timeline-meta">
+        <div><span>Owner</span>${escapeHtml(item.owner)}</div>
+        <div><span>Target</span>${escapeHtml(item.targetCompletionDate || "-")}</div>
+        <div><span>QA</span>${item.isQaIssue ? "Yes" : "No"}</div>
+        <div><span>Updates</span>${entries.length}</div>
+      </div>
+      <div class="mini-timeline">
+        ${entries.length ? entries.map(renderMiniTimelineEntry).join("") : `<div class="empty-track">No timeline entries yet.</div>`}
+      </div>
+      <div class="board-card-actions">
+        <button class="secondary" data-detail="${item.id}">Open Full Timeline</button>
+        ${canEdit() ? `<button data-weekly="${item.id}">Add Update</button>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderMiniTimelineEntry(entry) {
+  return html`
+    <div class="mini-timeline-entry">
+      <div><strong>${escapeHtml(entry.reportingWeek)}</strong><span class="badge ${statusClass(entry.status)}">${escapeHtml(entry.status)}</span></div>
+      <p><strong>Progress:</strong> ${escapeHtml(cleanProgress(entry))}</p>
+      <p><strong>Next:</strong> ${escapeHtml(entry.nextStep || "-")}</p>
+      ${hasMeaningfulBlocker(entry.blockerRisk) ? `<p><strong>Blocker / Delay:</strong> ${escapeHtml(entry.blockerRisk)}</p>` : ""}
+    </div>
+  `;
+}
+
+function renderBoardCard(item, compact = false) {
+  const latest = item.latestWeeklyUpdate;
+  const display = itemDisplayParts(item);
+  return html`
+    <article class="board-card ${segmentClass(item.segment)} ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
+      <div class="board-card-head">
+        <div>
+          <div class="product-workstream-box">${escapeHtml(display.product)}</div>
+          ${item.isQaIssue ? `<span class="qa-issue-label">QA Issue</span>` : ""}
+          ${display.detail ? `<div class="board-card-title-row has-detail"><h3 class="board-card-subtitle">${escapeHtml(display.detail)}</h3><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>` : `<div class="board-card-title-row"><span></span><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>`}
+        </div>
+      </div>
+      ${renderLatestUpdateBlock(item, compact)}
+      <div class="board-card-meta">
+        <span>${escapeHtml(formatCardDate(item, latest))}</span>
+        <span class="owner-chip"><span>${escapeHtml(ownerInitials(item.owner))}</span>${escapeHtml(item.owner)}</span>
+      </div>
+      <div class="board-card-actions">
+        <button class="secondary" data-detail="${item.id}">Timeline</button>
+        ${canEdit() ? `<button class="secondary" data-edit="${item.id}">Edit Item</button><button data-weekly="${item.id}">Add Update</button>` : ""}
+        ${canAdmin() ? `<button class="danger" data-delete-update="${item.id}">Delete</button>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function ownerInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function lifecycleState(item) {
+  if (item.archived) return "Archived";
+  if (item.status === "Done" || item.doneWeek) return "Done";
+  return "Active";
+}
+
+function linkSummary(links = []) {
+  if (!links.length) return "No links";
+  return `${links.length} link${links.length === 1 ? "" : "s"}`;
+}
+
+function workstreamSummary(item) {
+  const workstreams = (item?.workstreams || item?.subTasks || []).filter((workstream) => !isPlaceholderWorkstream(workstream.title || workstream));
+  if (!workstreams.length) return "No workstreams";
+  return `${workstreams.length} workstream${workstreams.length === 1 ? "" : "s"}`;
+}
+
+function subTaskSummary(subTasks = []) {
+  const total = subTasks.length;
+  if (!total) return "No sub-tasks";
+  const done = subTasks.filter((task) => task.done).length;
+  return `${done}/${total} done`;
+}
+
+function renderLatestUpdateText(latest) {
+  if (!latest) return "";
+  return html`
+    <p><strong>${escapeHtml(workstreamLabel(latest.workstreamTitle || DEFAULT_WORKSTREAM_TITLE))}</strong></p>
+    <p><strong>Progress:</strong> ${escapeHtml(cleanProgress(latest))}</p>
+    <p><strong>Next:</strong> ${escapeHtml(latest.nextStep || "-")}</p>
+    ${hasMeaningfulBlocker(latest.blockerRisk) ? `<p><strong>Blocker / Delay:</strong> ${escapeHtml(latest.blockerRisk)}</p>` : ""}
+  `;
+}
+
+function cleanProgress(entry) {
+  const prefix = `${entry.workstreamTitle}:`;
+  const progress = String(entry.progress || "").startsWith(prefix) ? entry.progress.slice(prefix.length).trim() : entry.progress;
+  return String(progress || "").trim() || "-";
+}
+
+function renderLatestUpdateBlock(item, compact) {
+  const updates = item.latestByWorkstream?.length ? item.latestByWorkstream : (item.latestWeeklyUpdate ? [item.latestWeeklyUpdate] : []);
+  const visibleUpdates = compact ? updates.slice(0, 2) : updates;
+  if (!updates.length) {
+    return "";
+  }
+  return html`
+    <div class="board-update-block">
+      ${visibleUpdates.map((latest) => html`
+        <div class="workstream-update">
+          ${shouldShowWorkstreamLabel(item, latest) ? `<strong>${escapeHtml(workstreamLabel(latest.workstreamTitle || DEFAULT_WORKSTREAM_TITLE))}</strong>` : ""}
+          <span>Progress</span>
+          <p>${escapeHtml(cleanProgress(latest))}</p>
+          ${compact
+            ? ""
+            : html`
+                <span>Next</span>
+                <p>${escapeHtml(latest.nextStep)}</p>
+                ${hasMeaningfulBlocker(latest.blockerRisk)
+                  ? `<div class="risk-line has-risk"><span>Blocker / Delay</span><p>${escapeHtml(latest.blockerRisk)}</p></div>`
+                  : ""}
+              `}
+        </div>
+      `).join("")}
+      ${compact && updates.length > visibleUpdates.length ? `<p class="muted">+${updates.length - visibleUpdates.length} more workstream update${updates.length - visibleUpdates.length === 1 ? "" : "s"}</p>` : ""}
+    </div>
+  `;
+}
+
+function shouldShowWorkstreamLabel(item, latest) {
+  const label = workstreamLabel(latest.workstreamTitle || DEFAULT_WORKSTREAM_TITLE);
+  if (!label || label === DEFAULT_WORKSTREAM_TITLE) return false;
+  return label.trim().toLowerCase() !== String(item.productWorkstream || "").trim().toLowerCase();
+}
+
+function renderWeeklyItemInfo(item) {
+  if (!item) return `<div class="empty">Select an Update Item to view project details.</div>`;
+  return html`
+    <section class="weekly-item-panel">
+      <div class="weekly-item-panel-head">
+        <div>
+          <span class="section-kicker">Project Information</span>
+          <h3>${escapeHtml(item.title)}</h3>
+        </div>
+        ${canEdit() ? `<button type="button" class="secondary" data-edit="${item.id}">Edit item details</button>` : ""}
+      </div>
+      <div class="weekly-info-grid">
+        <div><span>Description</span><strong>${escapeHtml(item.description || "-")}</strong></div>
+        <div><span>Owner</span><strong>${escapeHtml(item.owner || "-")}</strong></div>
+        <div><span>Current status</span><strong>${escapeHtml(item.status || "-")}</strong></div>
+        <div><span>Target completion</span><strong>${escapeHtml(item.targetCompletionDate || "-")}</strong></div>
+        <div><span>Related links</span><strong>${escapeHtml(linkSummary(item.relatedLinks || []))}</strong></div>
+        <div><span>Sub-task summary</span><strong>${escapeHtml(subTaskSummary(item.subTasks || []))}</strong></div>
+        <div><span>Last updated by</span><strong>${escapeHtml(item.lastUpdatedBy || "-")}</strong></div>
+        <div><span>Last updated at</span><strong>${escapeHtml(item.lastUpdatedAt ? formatDateTime(item.lastUpdatedAt) : "-")}</strong></div>
+      </div>
+    </section>
+  `;
+}
+
+function hasMeaningfulBlocker(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return Boolean(normalized && !["no", "none", "n/a", "na", "-", "no.", "none."].includes(normalized));
+}
+
+function formatCardDate(item, latest) {
+  const value = latest?.submittedAt || item.lastUpdatedAt;
+  if (!value) return item.targetCompletionDate;
+  return new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+}
+
+function bindDashboardEvents() {
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      state.view = button.dataset.page;
+      if (["dashboard", "pmView"].includes(state.view)) await loadDashboard();
+      if (state.view === "archiveFolder") await loadArchiveFolder();
+      if (["productMarketing", "meetings", "reportExport"].includes(state.view)) await loadModules();
+      render();
+    });
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+  document.querySelector("#quick-item")?.addEventListener("click", () => {
+    state.modal = { type: "item", item: null };
+    render();
+  });
+  document.querySelector("#quick-weekly")?.addEventListener("click", () => {
+    state.modal = { type: "weekly", itemId: "", direct: false };
+    render();
+  });
+  document.querySelector("#quick-announcement")?.addEventListener("click", () => {
+    state.modal = { type: "announcement", announcement: null };
+    render();
+  });
+  document.querySelector("#quick-meeting")?.addEventListener("click", () => {
+    state.modal = { type: "meeting", meeting: null };
+    render();
+  });
+  document.querySelector("#quick-marketing")?.addEventListener("click", () => {
+    state.modal = { type: "marketing", asset: null };
+    render();
+  });
+  document.querySelector("#quick-capacity")?.addEventListener("click", () => {
+    state.modal = { type: "capacity" };
+    render();
+  });
+  document.querySelectorAll("[data-period]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      state.period = button.dataset.period;
+      await loadDashboard();
+      render();
+    });
+  });
+  document.querySelectorAll("[data-board-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.boardView = button.dataset.boardView;
+      localStorage.setItem("pib_board_view", state.boardView);
+      render();
+    });
+  });
+  document.querySelector("#prev-period").addEventListener("click", async () => {
+    state.selectedWeek = shiftSelectedWeek(-1);
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#next-period").addEventListener("click", async () => {
+    state.selectedWeek = shiftSelectedWeek(1);
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#today-period").addEventListener("click", async () => {
+    state.selectedWeek = state.config.currentReportingWeek;
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#week-selector").addEventListener("change", async (event) => {
+    state.selectedWeek = event.target.value || state.config.currentReportingWeek;
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#filter-status").addEventListener("change", updateFilters);
+  document.querySelector("#filter-owner").addEventListener("change", updateFilters);
+  document.querySelector("#filter-product-area").addEventListener("change", updateFilters);
+  document.querySelector("#filter-segment").addEventListener("change", updateFilters);
+  document.querySelector("#filter-track").addEventListener("change", updateFilters);
+  document.querySelector("#filter-product-workstream").addEventListener("change", updateFilters);
+  document.querySelector("#reset-filters").addEventListener("click", async () => {
+    state.filters = {
+      status: "",
+      owner: "",
+      productArea: "",
+      segment: "",
+      track: "",
+      productWorkstream: "",
+      includeFutureDone: false,
+    };
+    await loadDashboard();
+    render();
+  });
+  document.querySelectorAll("[data-detail]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      state.detail = await api(`/api/items/${button.dataset.detail}`);
+      state.modal = { type: "detail" };
+      render();
+    });
+  });
+  document.querySelectorAll("[data-weekly]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.modal = { type: "weekly", itemId: button.dataset.weekly, direct: true };
+      render();
+      loadPreviousReference();
+    });
+  });
+}
+
+async function updateFilters(event) {
+  const changedId = event?.target?.id || "";
+  const resetSegment = changedId === "filter-product-area";
+  const resetTrack = resetSegment || changedId === "filter-segment";
+  const resetProductWorkstream = resetTrack || changedId === "filter-track";
+  state.filters = {
+    status: document.querySelector("#filter-status").value,
+    owner: document.querySelector("#filter-owner").value,
+    productArea: document.querySelector("#filter-product-area").value,
+    segment: resetSegment ? "" : document.querySelector("#filter-segment").value,
+    track: resetTrack ? "" : document.querySelector("#filter-track").value,
+    productWorkstream: resetProductWorkstream ? "" : document.querySelector("#filter-product-workstream").value,
+    includeFutureDone: false,
+  };
+  await loadDashboard();
+  if (state.filters.segment && !availableSegments().includes(state.filters.segment)) state.filters.segment = "";
+  if (state.filters.track && !availableTracks().includes(state.filters.track)) state.filters.track = "";
+  if (state.filters.productWorkstream && !availableProductWorkstreams().includes(state.filters.productWorkstream)) {
+    state.filters.productWorkstream = "";
+    await loadDashboard();
+  }
+  render();
+}
+
+function renderModal() {
+  if (state.modal.type === "item") return renderItemForm(state.modal.item);
+  if (state.modal.type === "weekly") return renderWeeklyForm(state.modal.itemId, state.modal.entry);
+  if (state.modal.type === "detail") return renderDetail();
+  if (state.modal.type === "announcement") return renderAnnouncementForm(state.modal.announcement);
+  if (state.modal.type === "meeting") return renderMeetingForm(state.modal.meeting);
+  if (state.modal.type === "marketing") return renderMarketingForm(state.modal.asset);
+  if (state.modal.type === "capacity") return renderCapacityForm();
+  return "";
+}
+
+function renderAnnouncementForm(announcement = null) {
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+          <div class="modal-head">
+          <div><h2>${announcement ? "Edit Announcement" : "Add Announcement"}</h2><p class="muted">Announcements are saved to the shared board database.</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="announcement-form" class="grid form-grid">
+          <label class="full">Title <input name="title" required value="${escapeHtml(announcement?.title || "")}" /></label>
+          <label>Reporting week <input name="week" pattern="\\d{4}-\\d{2}" value="${escapeHtml(announcement?.week || state.selectedWeek)}" /></label>
+          <label>Type <select name="type">${["Info", "Warning", "Alert", "Success", "Event"].map((type) => `<option ${type === (announcement?.type || "Info") ? "selected" : ""}>${escapeHtml(type)}</option>`).join("")}</select></label>
+          <label>Product Area <select name="productArea"><option value="">All areas</option>${(state.config.productAreas || []).map((area) => `<option value="${escapeHtml(area)}" ${area === (announcement?.productArea || "") ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}</select></label>
+          <label>Priority <select name="priority">${["Normal", "High", "Critical"].map((priority) => `<option ${priority === (announcement?.priority || "Normal") ? "selected" : ""}>${priority}</option>`).join("")}</select></label>
+          <label>Valid until <input type="date" name="validUntil" value="${escapeHtml(announcement?.validUntil || "")}" /></label>
+          <label>Visibility <select name="visibility">${["All", "PM Team", "PMM", "Product Lead"].map((visibility) => `<option ${visibility === (announcement?.visibility || "All") ? "selected" : ""}>${escapeHtml(visibility)}</option>`).join("")}</select></label>
+          <label class="full">Details <textarea name="body" required>${escapeHtml(announcement?.body || "")}</textarea></label>
+          <label class="full">Upload / related links <span class="optional-label">Optional</span><textarea name="relatedLinks" placeholder="Label | https://example.com">${escapeHtml(linkLines(announcement?.relatedLinks || []))}</textarea></label>
+          <label class="checkbox full"><input type="checkbox" name="archived" ${announcement?.archived ? "checked" : ""} /> Archived</label>
+          <div class="full row"><button type="submit">${announcement ? "Save Announcement" : "Add Announcement"}</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function renderPmManagement() {
+  app.innerHTML = html`
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Management</h1>
+          <div class="muted">Product Lead management for PM profiles, PM accounts, taxonomy structure, and archived item visibility.</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="back-dashboard">Back to Dashboard</button>
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+      </header>
+      <section class="panel management-panel">
+        ${renderPmProfilesPanel()}
+        ${renderPmAccountsForm()}
+        ${renderTaxonomyPanel()}
+        ${renderManagementNotes()}
+      </section>
+    </main>
+  `;
+  document.querySelector("#back-dashboard").addEventListener("click", async () => {
+    state.view = "dashboard";
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+  document.querySelector("#management-show-archived")?.addEventListener("click", async () => {
+    state.view = "archiveFolder";
+    await loadArchiveFolder();
+    render();
+  });
+}
+
+function renderPlaceholderPage(title, content) {
+  app.innerHTML = html`
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>${escapeHtml(title)}</h1>
+          <div class="muted">Product Intelligence Board</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="back-dashboard">Back to Dashboard</button>
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+      </header>
+      <section class="panel management-panel">
+        <div class="placeholder-panel">${content}</div>
+      </section>
+    </main>
+  `;
+  document.querySelector("#back-dashboard").addEventListener("click", async () => {
+    state.view = "dashboard";
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+}
+
+function renderArchiveFolder() {
+  const query = state.archiveSearch.trim().toLowerCase();
+  const items = (state.archiveItems || []).filter((item) => {
+    if (!query) return true;
+    return [
+      item.title,
+      item.productWorkstream,
+      item.productArea,
+      item.segment,
+      item.track,
+      item.owner,
+      item.status,
+      item.archivedReason,
+      item.lastUpdatedBy,
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+  });
+  app.innerHTML = html`
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Archive Folder</h1>
+          <div class="muted">Archived update items are hidden from the main dashboard and kept here for search and timeline access.</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="back-dashboard">Back to Dashboard</button>
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+      </header>
+      <section class="panel management-panel">
+        <div class="archive-folder-head">
+          <label>Search archived items
+            <input id="archive-search" value="${escapeHtml(state.archiveSearch)}" placeholder="Search title, owner, product, reason..." />
+          </label>
+          <strong>${items.length} archived item${items.length === 1 ? "" : "s"}</strong>
+        </div>
+        <div class="item-group-list">
+          ${items.length ? items.map(renderArchivedItemCard).join("") : `<div class="empty">No archived items found.</div>`}
+        </div>
+      </section>
+      ${state.modal ? renderModal() : ""}
+    </main>
+  `;
+  bindArchiveFolderEvents();
+}
+
+function renderPmView() {
+  const profiles = ownerProfiles();
+  const selectedProfile = state.pmViewProfile || state.selectedPmProfile || profiles[0] || "";
+  state.pmViewProfile = selectedProfile;
+  const items = state.dashboard?.items || [];
+  const ownerItems = items.filter((item) => item.owner === selectedProfile);
+  const entryRows = items
+    .flatMap((item) => (item.timelineEntries || []).map((entry) => ({ item, entry })))
+    .filter(({ entry }) => entry.submittedBy === selectedProfile || entry.lastUpdatedBy === selectedProfile)
+    .sort((a, b) => String(b.entry.reportingWeek || "").localeCompare(String(a.entry.reportingWeek || "")) || String(b.entry.lastUpdatedAt || "").localeCompare(String(a.entry.lastUpdatedAt || "")));
+  app.innerHTML = html`
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>PM View</h1>
+          <div class="muted">Secondary view for owner workload and submitted / updated weekly entries. The main dashboard remains shared.</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="back-dashboard">Back to Dashboard</button>
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+      </header>
+      <section class="panel management-panel">
+        <div class="pm-view-controls">
+          <label>PM Profile
+            <select id="pm-view-profile">${profiles.map((name) => `<option value="${escapeHtml(name)}" ${name === selectedProfile ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select>
+          </label>
+          <div class="segmented-control">
+            <button class="${state.pmViewMode === "owner" ? "active" : ""}" data-pm-view-mode="owner">By Owner</button>
+            <button class="${state.pmViewMode === "activity" ? "active" : ""}" data-pm-view-mode="activity">Submitted / Updated</button>
+          </div>
+          <div class="pm-view-stats"><strong>${ownerItems.length}</strong> owned items · <strong>${entryRows.length}</strong> submitted/updated entries</div>
+        </div>
+        ${state.pmViewMode === "owner" ? renderPmOwnerView(ownerItems) : renderPmActivityView(entryRows)}
+      </section>
+      ${state.modal ? renderModal() : ""}
+    </main>
+  `;
+  bindPmViewEvents();
+}
+
+function renderPmOwnerView(items) {
+  return html`
+    <section class="item-view">
+      <div class="item-view-head">
+        <span class="section-kicker">View by Owner</span>
+        <strong>${escapeHtml(state.pmViewProfile)}</strong>
+      </div>
+      <div class="item-group-list">
+        ${items.length ? items.map(renderItemRow).join("") : `<div class="empty">No owned update items in the selected dashboard view.</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function renderPmActivityView(rows) {
+  return html`
+    <section class="item-view">
+      <div class="item-view-head">
+        <span class="section-kicker">Submitted / Updated Weekly Entries</span>
+        <strong>${escapeHtml(state.pmViewProfile)}</strong>
+      </div>
+      <div class="mini-timeline">
+        ${rows.length ? rows.map(({ item, entry }) => html`
+          <article class="mini-timeline-entry pm-activity-entry">
+            <div><strong>${escapeHtml(entry.reportingWeek)}</strong><span class="badge ${statusClass(entry.status)}">${escapeHtml(entry.status)}</span></div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <small>${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)} · Owner ${escapeHtml(item.owner)}</small>
+            <p><strong>Progress:</strong> ${escapeHtml(cleanProgress(entry))}</p>
+            <p><strong>Next:</strong> ${escapeHtml(entry.nextStep || "-")}</p>
+            <p class="muted">Submitted by ${escapeHtml(entry.submittedBy)} at ${formatDateTime(entry.submittedAt)} · Last updated by ${escapeHtml(entry.lastUpdatedBy)} at ${formatDateTime(entry.lastUpdatedAt)}</p>
+            <div class="row"><button class="secondary" data-detail="${item.id}">Timeline</button></div>
+          </article>
+        `).join("") : `<div class="empty">No submitted or updated weekly entries in the selected dashboard view.</div>`}
+      </div>
+    </section>
+  `;
+}
+
+function bindPmViewEvents() {
+  document.querySelector("#back-dashboard").addEventListener("click", async () => {
+    state.view = "dashboard";
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+  document.querySelector("#pm-view-profile").addEventListener("change", (event) => {
+    state.pmViewProfile = event.target.value;
+    renderPmView();
+  });
+  document.querySelectorAll("[data-pm-view-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.pmViewMode = button.dataset.pmViewMode;
+      renderPmView();
+    });
+  });
+  document.querySelectorAll("[data-detail]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      state.detail = await api(`/api/items/${button.dataset.detail}`);
+      state.modal = { type: "detail" };
+      renderPmView();
+    });
+  });
+  document.querySelectorAll("[data-edit]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = await api(`/api/items/${button.dataset.edit}`);
+      state.modal = { type: "item", item };
+      renderPmView();
+    });
+  });
+  document.querySelectorAll("[data-weekly]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.modal = { type: "weekly", itemId: button.dataset.weekly, direct: true };
+      renderPmView();
+      loadPreviousReference();
+    });
+  });
+}
+
+function renderArchivedItemCard(item) {
+  const display = itemDisplayParts(item);
+  return html`
+    <article class="item-row-card archived-folder-card">
+      <div class="item-row-main">
+        <div>
+          <h3>${escapeHtml(display.product)}</h3>
+          ${display.detail ? `<div class="board-card-subtitle">${escapeHtml(display.detail)}</div>` : ""}
+          <div class="item-row-path">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</div>
+        </div>
+        <span class="badge status-done">Archived</span>
+      </div>
+      <div class="item-row-grid">
+        <div><span>Owner</span><strong>${escapeHtml(item.owner || "-")}</strong></div>
+        <div><span>Status when archived</span><strong>${escapeHtml(item.status || "-")}</strong></div>
+        <div><span>Archived by</span><strong>${escapeHtml(item.lastUpdatedBy || "-")}</strong></div>
+        <div><span>Archived at</span><strong>${escapeHtml(formatDateTime(item.lastUpdatedAt))}</strong></div>
+        <div><span>Reason</span><strong>${escapeHtml(item.archivedReason || "-")}</strong></div>
+        <div><span>Timeline entries</span><strong>${item.timelineEntries?.length || 0}</strong></div>
+      </div>
+      <div class="board-card-actions">
+        <button class="secondary" data-archive-detail="${item.id}">Timeline</button>
+        ${canAdmin() ? `<button class="danger" data-archive-delete="${item.id}">Delete</button>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function bindArchiveFolderEvents() {
+  document.querySelector("#back-dashboard").addEventListener("click", async () => {
+    state.view = "dashboard";
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+  document.querySelector("#archive-search").addEventListener("input", (event) => {
+    state.archiveSearch = event.target.value;
+    renderArchiveFolder();
+    document.querySelector("#archive-search")?.focus();
+  });
+  document.querySelectorAll("[data-archive-detail]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      state.detail = await api(`/api/items/${button.dataset.archiveDetail}`);
+      state.modal = { type: "detail" };
+      renderArchiveFolder();
+    });
+  });
+  document.querySelectorAll("[data-archive-delete]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!window.confirm("Delete this Update Item and all of its weekly timeline entries?")) return;
+      await api(`/api/items/${button.dataset.archiveDelete}`, { method: "DELETE" });
+      await loadArchiveFolder();
+      renderArchiveFolder();
+    });
+  });
+}
+
+function renderProductMarketing() {
+  const launchItems = (state.dashboard?.items || [])
+    .filter((item) => ["Testing", "Live", "Done"].includes(item.status))
+    .slice(0, 12);
+  const assets = state.modules.marketing || [];
+  app.innerHTML = renderStandalonePage("Product Marketing", "Launch readiness, GTM assets, and PMM follow-up.", html`
+    <section class="module-grid">
+      <div class="module-card wide">
+        <h2>Launch Readiness</h2>
+        <div class="module-list">
+          ${launchItems.length ? launchItems.map((item) => html`
+            <article class="module-row">
+              <div>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · Owner ${escapeHtml(item.owner)}</small>
+              </div>
+              <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+            </article>
+          `).join("") : `<div class="empty-track">No launch-stage items in the current view.</div>`}
+        </div>
+      </div>
+      ${canManagePmm() ? `<div class="module-card">
+        <h2>PMM Asset Tracker</h2>
+        <p class="muted">Track launch assets, PM review, revision status, and final links.</p>
+        <button id="quick-marketing">Add PMM Asset</button>
+      </div>` : ""}
+      <div class="module-card wide">
+        <h2>Tracked Assets</h2>
+        <div class="module-list">
+          ${assets.length ? assets.map(renderMarketingAssetCard).join("") : `<div class="empty-track">No PMM assets added yet.</div>`}
+        </div>
+      </div>
+    </section>
+  `);
+  bindStandalonePageEvents();
+  document.querySelector("#quick-marketing")?.addEventListener("click", () => {
+    state.modal = { type: "marketing", asset: null };
+    renderProductMarketing();
+  });
+}
+
+function renderMeetings() {
+  const items = state.dashboard?.items || [];
+  const riskItems = items.filter((item) => ["Blocked", "Delay"].includes(item.status));
+  const recentlyDone = items.filter((item) => item.status === "Done");
+  app.innerHTML = renderStandalonePage("Meetings", "Weekly review agenda generated from the current board view.", html`
+    <section class="module-grid">
+      <div class="module-card">
+        <h2>Meeting Notes</h2>
+        <p class="muted">Upload weekly review notes, decisions, action items, and meeting attachments.</p>
+        ${canManageModules() ? `<button id="add-meeting-note">Upload Meeting Note</button>` : ""}
+      </div>
+      <div class="module-card">
+        <h2>Risk Agenda</h2>
+        <div class="module-list">${riskItems.length ? riskItems.map(renderMeetingAgendaRow).join("") : `<div class="empty-track">No Blocked or Delay items in this view.</div>`}</div>
+      </div>
+      <div class="module-card">
+        <h2>Done Review</h2>
+        <div class="module-list">${recentlyDone.length ? recentlyDone.map(renderMeetingAgendaRow).join("") : `<div class="empty-track">No Done items in this view.</div>`}</div>
+      </div>
+      <div class="module-card wide">
+        <h2>Saved Notes</h2>
+        <div class="module-list">
+          ${(state.modules.meetings || []).length ? state.modules.meetings.map(renderMeetingNoteCard).join("") : `<div class="empty-track">No meeting notes yet.</div>`}
+        </div>
+      </div>
+    </section>
+  `);
+  bindStandalonePageEvents();
+  document.querySelector("#add-meeting-note")?.addEventListener("click", () => {
+    state.modal = { type: "meeting", meeting: null };
+    renderMeetings();
+  });
+}
+
+function renderMeetingForm(meeting = null) {
+  const updateItems = state.dashboard?.items || [];
+  const relatedValue = meeting?.relatedUpdateItemId || "";
+  const productAreaValue = meeting?.productArea || updateItems.find((item) => item.id === relatedValue)?.productArea || "";
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+        <div class="modal-head">
+          <div><h2>${meeting ? "Edit Meeting Note" : "Upload Meeting Note"}</h2><p class="muted">Capture meeting note, action items, decisions, and attachment links.</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="meeting-form" class="grid form-grid">
+          <label class="full">Meeting title <input name="title" required placeholder="Weekly product review" value="${escapeHtml(meeting?.title || "")}" /></label>
+          <label>Meeting type <select name="meetingType">${["Weekly Review", "Product Review", "Launch Review", "Risk Review", "Customer / Partner Sync"].map((type) => `<option ${type === (meeting?.meetingType || "Weekly Review") ? "selected" : ""}>${escapeHtml(type)}</option>`).join("")}</select></label>
+          <label>Meeting date <input name="meetingDate" type="date" value="${escapeHtml(meeting?.meetingDate || new Date().toISOString().slice(0, 10))}" /></label>
+          <label>Reporting week <input name="reportingWeek" pattern="\\d{4}-\\d{2}" value="${escapeHtml(meeting?.reportingWeek || state.selectedWeek)}" /></label>
+          <label>Product Area <select name="productArea"><option value="">All areas</option>${(state.config.productAreas || []).map((area) => `<option value="${escapeHtml(area)}" ${area === productAreaValue ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}</select></label>
+          <label>Related Update Item <select name="relatedUpdateItemId"><option value="">None</option>${updateItems.map((item) => `<option value="${item.id}" ${item.id === relatedValue ? "selected" : ""}>${escapeHtml(item.productArea)} · ${escapeHtml(item.title)}</option>`).join("")}</select></label>
+          <label>Owner <input name="owner" value="${escapeHtml(meeting?.owner || state.selectedPmProfile || "Product Lead")}" /></label>
+          <label class="full">Participants <input name="participants" placeholder="Names, teams, or roles" value="${escapeHtml(meeting?.participants || "")}" /></label>
+          <label class="full">Agenda <textarea name="agenda" placeholder="Topics discussed">${escapeHtml(meeting?.agenda || "")}</textarea></label>
+          <label class="full">Meeting notes <textarea name="notes" required placeholder="Discussion notes">${escapeHtml(meeting?.notes || "")}</textarea></label>
+          <label class="full">Decisions <textarea name="decisions" placeholder="Decision log">${escapeHtml(meeting?.decisions || "")}</textarea></label>
+          <label class="full">Action items <textarea name="actionItems" placeholder="One action item per line">${escapeHtml(taskLines(meeting?.actionItems || []))}</textarea></label>
+          <label>Status <select name="status">${["Open", "Follow-up", "Closed"].map((status) => `<option ${status === (meeting?.status || "Open") ? "selected" : ""}>${status}</option>`).join("")}</select></label>
+          <label class="full">Upload / attachment links <span class="optional-label">Optional</span><textarea name="attachments" placeholder="Deck | https://example.com">${escapeHtml(linkLines(meeting?.attachments || []))}</textarea></label>
+          <div class="full row"><button type="submit">${meeting ? "Save Meeting Note" : "Upload Meeting Note"}</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function renderMarketingForm(asset = null) {
+  const updateItems = state.dashboard?.items || [];
+  const productAreaValue = asset?.productArea || updateItems.find((item) => item.id === (asset?.relatedUpdateItemId || asset?.launchItemId))?.productArea || "CBI";
+  const relatedValue = asset?.relatedUpdateItemId || asset?.launchItemId || "";
+  const typeValue = asset?.type || asset?.channel || "Internal enablement";
+  const statusValue = asset?.status || "Backlog";
+  const typeOptions = ["Internal enablement", "Sales deck", "Customer comms", "Release note", "FAQ", "Training", "Website / landing page", "Launch plan"];
+  const statusOptions = ["Backlog", "In Progress", "PM Review", "Revision Needed", "Internal Version Confirmed", "Final", "Archived"];
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+        <div class="modal-head">
+          <div><h2>${asset ? "Edit PMM Asset" : "Add PMM Asset"}</h2><p class="muted">Track launch readiness, GTM assets, PMM notes, and external links.</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="marketing-form" class="grid form-grid">
+          <label>Product Area <select name="productArea">${(state.config.productAreas || []).map((area) => `<option ${area === productAreaValue ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}</select></label>
+          <label>Related Update Item <select name="relatedUpdateItemId"><option value="">None</option>${updateItems.map((item) => `<option value="${item.id}" ${item.id === relatedValue ? "selected" : ""}>${escapeHtml(item.productArea)} · ${escapeHtml(item.title)}</option>`).join("")}</select></label>
+          <label class="full">Asset / Message <input name="title" required placeholder="e.g. SkorKu 3.0 launch one-pager" value="${escapeHtml(asset?.title || "")}" /></label>
+          <label>Type <select name="type">${typeOptions.map((type) => `<option ${type === typeValue ? "selected" : ""}>${escapeHtml(type)}</option>`).join("")}</select></label>
+          <label>Status <select name="status">${statusOptions.map((status) => `<option ${status === statusValue ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></label>
+          <label>Owner <input name="owner" placeholder="PMM owner" value="${escapeHtml(asset?.owner || "")}" /></label>
+          <label>PM Reviewer <input name="pmReviewer" placeholder="PM reviewer" value="${escapeHtml(asset?.pmReviewer || "")}" /></label>
+          <label>Target Completion Date <input type="date" name="targetCompletionDate" value="${escapeHtml(asset?.targetCompletionDate || "")}" /></label>
+          <label>Completed Date <input type="date" name="completedDate" value="${escapeHtml(asset?.completedDate || "")}" /></label>
+          <label class="full">Description <textarea name="description" placeholder="Positioning, target users, launch risk">${escapeHtml(asset?.description || asset?.notes || "")}</textarea></label>
+          <label class="full">Draft Link <input name="draftLink" placeholder="https://..." value="${escapeHtml(asset?.draftLink || "")}" /></label>
+          <label class="full">Internal Version Link <input name="internalVersionLink" placeholder="https://..." value="${escapeHtml(asset?.internalVersionLink || "")}" /></label>
+          <label class="full">Final Version Link <input name="finalVersionLink" placeholder="https://..." value="${escapeHtml(asset?.finalVersionLink || asset?.link || "")}" /></label>
+          <label class="full">PM Feedback <textarea name="pmFeedback" placeholder="PM comments, requested revisions, approval note">${escapeHtml(asset?.pmFeedback || "")}</textarea></label>
+          <label class="checkbox full"><input type="checkbox" name="archived" ${asset?.archived ? "checked" : ""} /> Archived</label>
+          <div class="full row"><button type="submit">${asset ? "Save PMM Asset" : "Add PMM Asset"}</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function capacityCsvFromRows(rows = capacityRowsFromDashboard(state.dashboard?.items || [])) {
+  const formatQuarter = (value, total, alert) => {
+    const hasValue = value !== "" && value !== null && value !== undefined;
+    return hasValue ? `${value}/${total || 0}${alert ? "!" : ""}` : "-";
+  };
+  return rows.map((row) => [
+    row.initials || ownerInitials(row.pmName),
+    row.pmName,
+    row.status || "Active",
+    row.roleScope || "",
+    row.activeSince || "",
+    formatQuarter(row.q1, row.q1Total || 64, row.q1Alert),
+    formatQuarter(row.q2, row.q2Total || 65, row.q2Alert),
+    formatQuarter(row.q3, row.q3Total || 66, row.q3Alert),
+    formatQuarter(row.q4, row.q4Total || 66, row.q4Alert),
+    row.notes || "",
+  ].join(" | ")).join("\n");
+}
+
+function parseCapacityCsv(value) {
+  const parseQuarter = (token) => {
+    const raw = String(token || "").trim();
+    if (!raw || raw === "-") return { value: "", total: "", alert: false };
+    const alert = raw.endsWith("!");
+    const clean = alert ? raw.slice(0, -1) : raw;
+    const [value, total] = clean.split("/").map((part) => part?.trim());
+    return { value: value === "-" ? "" : value, total: total || "", alert };
+  };
+  return String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [initials, pmName, status, roleScope, activeSince, q1Text, q2Text, q3Text, q4Text, ...notes] = line.split("|").map((part) => part.trim());
+      const q1 = parseQuarter(q1Text);
+      const q2 = parseQuarter(q2Text);
+      const q3 = parseQuarter(q3Text);
+      const q4 = parseQuarter(q4Text);
+      return {
+        initials,
+        pmName,
+        status,
+        roleScope,
+        activeSince,
+        q1: q1.value,
+        q1Total: q1.total,
+        q1Alert: q1.alert,
+        q2: q2.value,
+        q2Total: q2.total,
+        q2Alert: q2.alert,
+        q3: q3.value,
+        q3Total: q3.total,
+        q3Alert: q3.alert,
+        q4: q4.value,
+        q4Total: q4.total,
+        q4Alert: q4.alert,
+        notes: notes.join(" | "),
+      };
+    });
+}
+
+function parseCapacityQuarterInput(raw) {
+  const text = String(raw || "").trim();
+  if (!text || text === "-") return { value: "", total: "", alert: false };
+  const alert = text.endsWith("!");
+  const clean = alert ? text.slice(0, -1) : text;
+  const [value, total] = clean.split("/").map((part) => part?.trim());
+  return { value: value === "-" ? "" : value, total: total || "", alert };
+}
+
+function formatCapacityQuarterInput(value, total, alert) {
+  const hasValue = value !== "" && value !== null && value !== undefined;
+  return hasValue ? `${value}/${total || 0}${alert ? "!" : ""}` : "-";
+}
+
+function renderCapacityInputRows() {
+  const rows = state.modules.capacity?.records || capacityRowsFromDashboard(state.dashboard?.items || []);
+  return rows.map(renderCapacityInputRow).join("");
+}
+
+function renderCapacitySummaryInputs() {
+  const rows = capacityRowsFromDashboard(state.dashboard?.items || []);
+  const summary = capacitySummaryDefaults(rows);
+  const renderMetric = (key, label, value, quarters) => html`
+    <fieldset class="capacity-summary-edit-card">
+      <legend>${escapeHtml(label)}</legend>
+      <label>Total <input name="${key}" value="${escapeHtml(value)}" /></label>
+      <div class="capacity-summary-quarter-inputs">
+        ${["q1", "q2", "q3", "q4"].map((quarter) => `<label>${quarter.toUpperCase()} <input name="${key}-${quarter}" value="${escapeHtml(quarters?.[quarter] ?? 0)}" /></label>`).join("")}
+      </div>
+    </fieldset>
+  `;
+  const renderBreakdown = (key, label, breakdown) => html`
+    <fieldset class="capacity-summary-edit-card capacity-breakdown-edit-card">
+      <legend>${escapeHtml(label)} Breakdown</legend>
+      <div class="capacity-breakdown-edit-grid">
+        ${["q1", "q2", "q3", "q4"].map((quarter) => html`
+          <div>
+            <strong>${quarter.toUpperCase()}</strong>
+            ${["cbi", "cbp", "aai"].map((bucket) => `<label>${bucket.toUpperCase()} <input name="${key}-${quarter}-${bucket}" value="${escapeHtml(breakdown?.[quarter]?.[bucket] ?? 0)}" /></label>`).join("")}
+          </div>
+        `).join("")}
+      </div>
+    </fieldset>
+  `;
+  return html`
+    <section class="capacity-summary-edit full">
+      <div>
+        <strong>Timesheet Statistics</strong>
+        <span class="optional-label">Shown at the top of the Capacity module. Breakdown is grouped by CBI / CBP / AAI.</span>
+      </div>
+      <div class="capacity-summary-edit-grid">
+        ${renderMetric("totalPd", "Total Team Timesheet Recorded", summary.totalPd, summary.totalQuarters)}
+        ${renderMetric("activePm", "Total Active PM Count", summary.activePm, summary.activeQuarters)}
+        ${renderMetric("averagePd", "Average PD per Active PM", summary.averagePd, summary.averageQuarters)}
+      </div>
+      <div class="capacity-summary-edit-grid">
+        ${renderBreakdown("totalPd", "Total PD", summary.totalBreakdown)}
+        ${renderBreakdown("activePm", "Active PM", summary.activeBreakdown)}
+        ${renderBreakdown("averagePd", "Average PD", summary.averageBreakdown)}
+      </div>
+    </section>
+  `;
+}
+
+function renderCapacityInputRow(row = {}) {
+  const rows = state.modules.capacity?.records || capacityRowsFromDashboard(state.dashboard?.items || []);
+  const pmOptions = [...new Set([...rows.map((row) => row.pmName), ...ownerProfiles()])].filter(Boolean);
+  return html`
+    <div class="capacity-edit-row" data-capacity-row>
+      <input type="hidden" name="id" value="${escapeHtml(row.id || "")}" />
+      <input type="hidden" name="initials" value="${escapeHtml(row.initials || ownerInitials(row.pmName))}" />
+      <label>PM
+        <select name="pmName" required>
+          <option value="">Select PM</option>
+          ${pmOptions.map((name) => `<option value="${escapeHtml(name)}" ${name === row.pmName ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
+        </select>
+      </label>
+      <label>Status
+        <select name="status">
+          ${["Active", "Transfer", "Resign"].map((status) => `<option value="${status}" ${status === (row.status || "Active") ? "selected" : ""}>${status}</option>`).join("")}
+        </select>
+      </label>
+      <label>Scope <input name="roleScope" value="${escapeHtml(row.roleScope || "")}" /></label>
+      <label>Active Since <input name="activeSince" value="${escapeHtml(row.activeSince || "")}" placeholder="01 Jan 2026" /></label>
+      <label>Q1 <input name="q1" value="${escapeHtml(formatCapacityQuarterInput(row.q1, row.q1Total || 64, row.q1Alert))}" placeholder="67/64" /></label>
+      <label>Q2 <input name="q2" value="${escapeHtml(formatCapacityQuarterInput(row.q2, row.q2Total || 65, row.q2Alert))}" placeholder="0/65!" /></label>
+      <label>Q3 <input name="q3" value="${escapeHtml(formatCapacityQuarterInput(row.q3, row.q3Total || 66, row.q3Alert))}" placeholder="0/66" /></label>
+      <label>Q4 <input name="q4" value="${escapeHtml(formatCapacityQuarterInput(row.q4, row.q4Total || 66, row.q4Alert))}" placeholder="0/66" /></label>
+      <label class="wide">Notes <input name="notes" value="${escapeHtml(row.notes || "")}" /></label>
+    </div>
+  `;
+}
+
+function parseCapacityFormRows(form) {
+  return [...form.querySelectorAll("[data-capacity-row]")].map((row) => {
+    const q1 = parseCapacityQuarterInput(row.querySelector("[name='q1']").value);
+    const q2 = parseCapacityQuarterInput(row.querySelector("[name='q2']").value);
+    const q3 = parseCapacityQuarterInput(row.querySelector("[name='q3']").value);
+    const q4 = parseCapacityQuarterInput(row.querySelector("[name='q4']").value);
+    return {
+      id: row.querySelector("[name='id']").value,
+      initials: row.querySelector("[name='initials']").value,
+      pmName: row.querySelector("[name='pmName']").value,
+      status: row.querySelector("[name='status']").value,
+      roleScope: row.querySelector("[name='roleScope']").value,
+      activeSince: row.querySelector("[name='activeSince']").value,
+      q1: q1.value,
+      q1Total: q1.total,
+      q1Alert: q1.alert,
+      q2: q2.value,
+      q2Total: q2.total,
+      q2Alert: q2.alert,
+      q3: q3.value,
+      q3Total: q3.total,
+      q3Alert: q3.alert,
+      q4: q4.value,
+      q4Total: q4.total,
+      q4Alert: q4.alert,
+      notes: row.querySelector("[name='notes']").value,
+    };
+  });
+}
+
+function parseCapacityNumber(value) {
+  const text = String(value || "").trim();
+  if (!text) return 0;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function parseCapacitySummaryForm(form) {
+  const read = (name) => parseCapacityNumber(form.querySelector(`[name="${name}"]`)?.value);
+  const readQuarters = (key) => ({
+    q1: read(`${key}-q1`),
+    q2: read(`${key}-q2`),
+    q3: read(`${key}-q3`),
+    q4: read(`${key}-q4`),
+  });
+  const readBreakdown = (key) => {
+    const breakdown = emptyCapacityBreakdown();
+    for (const quarter of ["q1", "q2", "q3", "q4"]) {
+      for (const bucket of ["cbi", "cbp", "aai"]) {
+        breakdown[quarter][bucket] = read(`${key}-${quarter}-${bucket}`);
+      }
+    }
+    return breakdown;
+  };
+  return {
+    totalPd: read("totalPd"),
+    activePm: read("activePm"),
+    averagePd: read("averagePd"),
+    totalQuarters: readQuarters("totalPd"),
+    activeQuarters: readQuarters("activePm"),
+    averageQuarters: readQuarters("averagePd"),
+    totalBreakdown: readBreakdown("totalPd"),
+    activeBreakdown: readBreakdown("activePm"),
+    averageBreakdown: readBreakdown("averagePd"),
+  };
+}
+
+function renderCapacityForm() {
+  return html`
+    <div class="modal">
+      <section class="modal-panel capacity-modal-panel">
+        <div class="modal-head">
+          <div><h2>Update PM Capacity</h2><p class="muted">Only Product Lead can upload or modify capacity data.</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="capacity-form" class="grid form-grid">
+          ${renderCapacitySummaryInputs()}
+          <div class="full">
+            <strong>Capacity rows</strong>
+            <span class="optional-label">Select PM and enter Q1-Q4 as used/target, e.g. 67/64. Add ! for red exception, e.g. 0/65!. Use - if empty.</span>
+            <div class="capacity-edit-list">${renderCapacityInputRows()}</div>
+            <button class="secondary" type="button" id="add-capacity-row">Add Capacity Row</button>
+          </div>
+          <div class="full row"><button type="submit">Save Capacity Data</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function renderMeetingAgendaRow(item) {
+  return html`
+    <article class="module-row">
+      <div>
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)} · ${escapeHtml(item.owner)}</small>
+      </div>
+      <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+    </article>
+  `;
+}
+
+function renderPmCapacity() {
+  const owners = ownerProfiles()
+    .map((owner) => {
+      const items = (state.dashboard?.items || []).filter((item) => item.owner === owner);
+      const active = items.filter((item) => !["Done"].includes(item.status)).length;
+      const risk = items.filter((item) => ["Blocked", "Delay"].includes(item.status)).length;
+      return { owner, total: items.length, active, risk };
+    })
+    .filter((row) => row.total || row.active || row.risk);
+  const max = Math.max(1, ...owners.map((row) => row.active));
+  app.innerHTML = renderStandalonePage("PM Capacity", "Workload snapshot by owner for the current filtered board.", html`
+    <section class="module-grid">
+      <div class="module-card wide">
+        <h2>Owner Workload</h2>
+        <div class="capacity-list">
+          ${owners.length ? owners.map((row) => html`
+            <article class="capacity-row">
+              <div class="owner-chip"><span>${escapeHtml(ownerInitials(row.owner))}</span>${escapeHtml(row.owner)}</div>
+              <div class="capacity-bar"><span style="width:${Math.max(8, Math.round((row.active / max) * 100))}%"></span></div>
+              <strong>${row.active} active</strong>
+              <small>${row.total} total · ${row.risk} risk</small>
+            </article>
+          `).join("") : `<div class="empty-track">No owner workload in this view.</div>`}
+        </div>
+      </div>
+    </section>
+  `);
+  bindStandalonePageEvents();
+}
+
+function renderReportExport() {
+  const reportText = generateReportText();
+  const reportHtml = generateReportHtml();
+  const exportPayload = {
+    generatedAt: new Date().toISOString(),
+    week: state.selectedWeek,
+    period: state.period,
+    filters: state.filters,
+    cards: state.dashboard?.cards || {},
+    items: state.dashboard?.items || [],
+    announcements: state.modules.announcements || [],
+  };
+  app.innerHTML = renderStandalonePage("Report Export", "Formal weekly report preview with copy and data export controls.", html`
+    <section class="report-export-grid">
+      <aside class="report-control-panel">
+        <div>
+          <span class="eyebrow">Export Controls</span>
+          <h2>Weekly Report Pack</h2>
+          <p class="muted">Use the report preview for leadership review, or copy/download the source payload for follow-up.</p>
+        </div>
+        <div class="report-metrics">
+          <div><span>Reporting week</span><strong>${escapeHtml(state.selectedWeek)}</strong></div>
+          <div><span>Period</span><strong>${escapeHtml(state.period)}</strong></div>
+          <div><span>Items</span><strong>${exportPayload.items.length}</strong></div>
+          <div><span>Generated by</span><strong>${escapeHtml(state.selectedPmProfile || state.role)}</strong></div>
+        </div>
+        <div class="report-actions">
+          <button id="copy-report" type="button">Copy Text Report</button>
+          <button class="secondary" id="copy-export" type="button">Copy JSON</button>
+          <button class="secondary" id="download-export" type="button">Download JSON</button>
+        </div>
+        <details class="export-raw-panel">
+          <summary>Copyable Text Report</summary>
+          <textarea id="report-text" readonly>${escapeHtml(reportText)}</textarea>
+        </details>
+        <details class="export-raw-panel">
+          <summary>JSON Payload</summary>
+          <textarea id="export-json" readonly>${escapeHtml(JSON.stringify(exportPayload, null, 2))}</textarea>
+        </details>
+      </aside>
+      <section class="report-preview-shell">
+        ${reportHtml}
+      </section>
+    </section>
+  `);
+  bindStandalonePageEvents();
+}
+
+function latestReportEntry(item) {
+  return item.latestWeeklyUpdate || item.weeklyUpdatesThisPeriod?.[0] || null;
+}
+
+function reportItemLine(item) {
+  const latest = latestReportEntry(item);
+  return [
+    `- ${item.title}`,
+    `  Owner: ${item.owner || "-"}`,
+    `  Status: ${item.status || "-"}`,
+    `  Progress: ${latest ? cleanProgress(latest) : "-"}`,
+    `  Next: ${latest?.nextStep || "-"}`,
+    `  Blocker / risk: ${hasMeaningfulBlocker(latest?.blockerRisk || item.blockerRisk) ? (latest?.blockerRisk || item.blockerRisk) : "-"}`,
+    `  Updates this period: ${item.updatesThisWeek || 0}`,
+    `  Last updated by: ${item.lastUpdatedBy || "-"}`,
+    `  Last updated at: ${formatDateTime(item.lastUpdatedAt)}`,
+  ].join("\n");
+}
+
+function reportGroupedItems(items) {
+  const groups = new Map();
+  for (const item of items) {
+    const key = `${item.productArea} > ${item.segment} > ${item.track}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  return [...groups.entries()].map(([key, groupItems]) => `${key}\n${groupItems.map(reportItemLine).join("\n")}`).join("\n\n");
+}
+
+function generateReportText() {
+  const items = state.dashboard?.items || [];
+  const updated = items.filter((item) => item.updatesThisWeek > 0);
+  const blocked = items.filter((item) => needsBlockerDelay(item.status) || hasMeaningfulBlocker(item.latestWeeklyUpdate?.blockerRisk || item.blockerRisk));
+  const done = items.filter((item) => item.doneWeek === state.selectedWeek || item.status === "Done");
+  return [
+    `Product Intelligence Weekly Report - ${state.selectedWeek}`,
+    "",
+    "1. Summary",
+    `- Total active items: ${items.length}`,
+    `- Updated items: ${updated.length}`,
+    `- Blocked items: ${blocked.length}`,
+    `- Done items: ${done.length}`,
+    "",
+    "2. Blocked Items",
+    blocked.length ? blocked.map((item) => {
+      const latest = latestReportEntry(item);
+      return [
+        `- ${item.title}`,
+        `  Owner: ${item.owner || "-"}`,
+        `  Blocker / risk: ${latest?.blockerRisk || item.blockerRisk || "-"}`,
+        `  Next step: ${latest?.nextStep || "-"}`,
+        `  Target completion date: ${item.targetCompletionDate || "-"}`,
+        `  Related links: ${linkSummary(item.relatedLinks || [])}`,
+      ].join("\n");
+    }).join("\n") : "- None",
+    "",
+    "3. Updated Items",
+    updated.length ? reportGroupedItems(updated) : "- None",
+    "",
+    "4. Done This Week",
+    done.length ? done.map(reportItemLine).join("\n") : "- None",
+  ].join("\n");
+}
+
+function generateReportHtml() {
+  const items = state.dashboard?.items || [];
+  const updated = items.filter((item) => item.updatesThisWeek > 0);
+  const blocked = items.filter((item) => needsBlockerDelay(item.status) || hasMeaningfulBlocker(item.latestWeeklyUpdate?.blockerRisk || item.blockerRisk));
+  const done = items.filter((item) => item.doneWeek === state.selectedWeek || item.status === "Done");
+  const groupedUpdated = new Map();
+  for (const item of updated) {
+    const key = `${item.productArea} / ${item.segment}`;
+    if (!groupedUpdated.has(key)) groupedUpdated.set(key, []);
+    groupedUpdated.get(key).push(item);
+  }
+  const renderReportItem = (item, mode = "default") => {
+    const latest = latestReportEntry(item);
+    const blocker = latest?.blockerRisk || item.blockerRisk || "";
+    return html`
+      <article class="report-item ${mode === "risk" ? "report-item-risk" : ""}">
+        <header>
+          <div>
+            <span>${escapeHtml(item.track || item.productWorkstream || item.segment)}</span>
+            <strong>${escapeHtml(item.title)}</strong>
+          </div>
+          <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status || "-")}</span>
+        </header>
+        <div class="report-item-grid">
+          <div><span>Owner</span><strong>${escapeHtml(item.owner || "-")}</strong></div>
+          <div><span>Last update</span><strong>${formatDateTime(item.lastUpdatedAt)}</strong></div>
+          <div><span>Progress</span><p>${escapeHtml(latest ? cleanProgress(latest) : "-")}</p></div>
+          <div><span>Next step</span><p>${escapeHtml(latest?.nextStep || "-")}</p></div>
+          ${mode === "risk" ? `<div class="report-risk-note"><span>Blocker / Risk</span><p>${escapeHtml(blocker || "-")}</p></div>` : ""}
+        </div>
+      </article>
+    `;
+  };
+  return html`
+    <article class="report-document">
+      <header class="report-cover">
+        <div>
+          <span class="eyebrow">Product Intelligence</span>
+          <h2>Weekly Management Report</h2>
+          <p>${escapeHtml(state.selectedWeek)} · ${escapeHtml(state.period)} · Generated ${formatDateTime(new Date().toISOString())}</p>
+        </div>
+        <div class="report-brand-strip" aria-label="Covered product brands">
+          <span>Prepared for</span>
+          <div>
+            <img src="/assets/CBI-logo-F-1.svg" alt="CBI" />
+            <img src="/assets/ADVANCE%20CBP%20logo-F.svg" alt="ADVANCE.CBP" />
+            <img src="/assets/SME%20Bureau%20logo_Primary%20(3).svg" alt="SME Bureau" />
+            <img src="/assets/SkorKu_Logo_Primary.svg" alt="SkorKu" />
+          </div>
+        </div>
+      </header>
+      <section class="report-kpi-row">
+        <div><span>Total Items</span><strong>${items.length}</strong></div>
+        <div><span>Updated</span><strong>${updated.length}</strong></div>
+        <div><span>Blocked / Delay</span><strong>${blocked.length}</strong></div>
+        <div><span>Done</span><strong>${done.length}</strong></div>
+      </section>
+      <section class="report-section">
+        <div class="report-section-head">
+          <span>01</span>
+          <h3>Executive Risk Summary</h3>
+        </div>
+        <div class="report-list">
+          ${blocked.length ? blocked.map((item) => renderReportItem(item, "risk")).join("") : `<p class="empty-track">No blocked or delayed items in this view.</p>`}
+        </div>
+      </section>
+      <section class="report-section">
+        <div class="report-section-head">
+          <span>02</span>
+          <h3>Updated Items</h3>
+        </div>
+        ${groupedUpdated.size ? [...groupedUpdated.entries()].map(([group, groupItems]) => html`
+          <div class="report-group">
+            <h4>${escapeHtml(group)}</h4>
+            <div class="report-list">${groupItems.map((item) => renderReportItem(item)).join("")}</div>
+          </div>
+        `).join("") : `<p class="empty-track">No updated items in this view.</p>`}
+      </section>
+      <section class="report-section">
+        <div class="report-section-head">
+          <span>03</span>
+          <h3>Done This Week</h3>
+        </div>
+        <div class="report-list compact">
+          ${done.length ? done.map((item) => renderReportItem(item)).join("") : `<p class="empty-track">No completed items in this view.</p>`}
+        </div>
+      </section>
+    </article>
+  `;
+}
+
+function renderStandalonePage(title, subtitle, content) {
+  return html`
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>${escapeHtml(title)}</h1>
+          <div class="muted">${escapeHtml(subtitle)}</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="back-dashboard">Back to Dashboard</button>
+          <button class="secondary" id="logout">Logout</button>
+        </div>
+      </header>
+      ${content}
+    </main>
+    ${state.modal ? renderModal() : ""}
+  `;
+}
+
+function bindStandalonePageEvents() {
+  document.querySelector("#back-dashboard").addEventListener("click", async () => {
+    state.view = "dashboard";
+    await loadDashboard();
+    render();
+  });
+  document.querySelector("#logout").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    localStorage.clear();
+    Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null });
+    render();
+  });
+  document.querySelector("#copy-report")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(document.querySelector("#report-text").value);
+  });
+  document.querySelector("#copy-export")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(document.querySelector("#export-json").value);
+  });
+  document.querySelector("#download-export")?.addEventListener("click", () => {
+    const blob = new Blob([document.querySelector("#export-json").value], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `product-intelligence-board-${state.selectedWeek}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+}
+
+function renderAdminSettingsContent() {
+  return html`
+    <div class="settings-grid">
+      <div><span>Current role</span><strong>${escapeHtml(state.role)}</strong></div>
+      <div><span>Current PM Profile</span><strong>${escapeHtml(state.selectedPmProfile || "Not selected")}</strong></div>
+      <div><span>Passcode management</span><strong>Server-side only</strong><p>Enter new passcodes to rotate them. Current passcodes are not exposed in frontend components.</p></div>
+      <div><span>Audit log</span><strong>Metadata captured</strong><p>Created by, updated by, submitted by, and timestamps are stored directly on update items, weekly entries, and module records.</p></div>
+      <div><span>Lark Bot</span><strong>Integration readiness</strong><p>No live Lark integration yet. Export JSON can be used as the handoff source for bot/report automation.</p></div>
+      <div><span>Backup</span><strong>Available through Report Export</strong><p>Use Report Export to download the current filtered board payload for manual backup and review.</p></div>
+    </div>
+    <form id="passcode-form" class="grid form-grid module-card">
+      <h2 class="full">Role Passcodes</h2>
+      ${(state.config.roles || []).map((role) => html`
+        <label>${escapeHtml(role)}
+          <input name="${escapeHtml(role)}" value="" placeholder="Enter new passcode" />
+        </label>
+      `).join("")}
+      <div class="full row"><button type="submit">Save Passcodes</button></div>
+      <div class="error full" id="form-error"></div>
+    </form>
+  `;
+}
+
+function renderPmProfilesPanel() {
+  return html`
+    <section class="management-block">
+      <h2>PM Profiles</h2>
+      <p class="muted">PM Profile is used for Owner, Submitted by, and Last updated by. It is separate from login role.</p>
+      <div class="pill-list">${ownerProfiles().map((name) => `<span>${escapeHtml(name)}</span>`).join("")}</div>
+    </section>
+  `;
+}
+
+function renderTaxonomyPanel() {
+  const customTracks = state.config.customTracks || [];
+  return html`
+    <section class="management-block">
+      <h2>Taxonomy Structure</h2>
+      <p class="muted">Product Area -> Segment -> Track / Category. Seeded categories stay visible; Product Lead can add, rename, order, and archive custom categories.</p>
+      <div class="taxonomy-list">
+        ${state.config.productAreas.map((area) => renderTaxonomyArea(area)).join("")}
+      </div>
+      <form id="taxonomy-form" class="taxonomy-editor">
+        <h3>Custom Track / Category Management</h3>
+        <div class="taxonomy-edit-list">
+          ${customTracks.map((track) => renderCustomTrackRow(track)).join("")}
+        </div>
+        <div class="taxonomy-new-row">
+          <select id="new-taxonomy-area">${state.config.productAreas.map((area) => `<option>${escapeHtml(area)}</option>`).join("")}</select>
+          <select id="new-taxonomy-segment">${(state.config.segmentsByArea[state.config.productAreas[0]] || []).map((segment) => `<option>${escapeHtml(segment)}</option>`).join("")}</select>
+          <input id="new-taxonomy-name" placeholder="New category name" />
+          <button type="button" class="secondary" id="add-custom-track">Add Category</button>
+        </div>
+        <div class="row"><button type="submit">Save Category Management</button></div>
+        <div class="error" id="form-error"></div>
+      </form>
+    </section>
+  `;
+}
+
+function renderCustomTrackRow(track = {}) {
+  const area = track.productArea || "CBI";
+  const segment = track.segment || (state.config.segmentsByArea[area] || [])[0] || "";
+  return html`
+    <div class="taxonomy-edit-row" data-custom-track-row data-id="${escapeHtml(track.id || "")}">
+      <select name="productArea">${state.config.productAreas.map((candidate) => `<option ${candidate === area ? "selected" : ""}>${escapeHtml(candidate)}</option>`).join("")}</select>
+      <select name="segment">${(state.config.segmentsByArea[area] || []).map((candidate) => `<option ${candidate === segment ? "selected" : ""}>${escapeHtml(candidate)}</option>`).join("")}</select>
+      <input name="name" value="${escapeHtml(track.name || "")}" placeholder="Category name" />
+      <input name="order" type="number" value="${escapeHtml(track.order ?? 0)}" />
+      <label class="checkbox"><input type="checkbox" name="archived" ${track.archived ? "checked" : ""} /> Archive</label>
+      <button type="button" class="danger" data-remove-custom-track>Remove</button>
+    </div>
+  `;
+}
+
+function updateNewTaxonomySegment() {
+  const area = document.querySelector("#new-taxonomy-area")?.value;
+  const segment = document.querySelector("#new-taxonomy-segment");
+  if (!area || !segment) return;
+  segment.innerHTML = (state.config.segmentsByArea[area] || []).map((candidate) => `<option>${escapeHtml(candidate)}</option>`).join("");
+}
+
+function updateCustomTrackRowSegments(row) {
+  if (!row) return;
+  const area = row.querySelector("select[name='productArea']")?.value;
+  const segment = row.querySelector("select[name='segment']");
+  if (!area || !segment) return;
+  segment.innerHTML = (state.config.segmentsByArea[area] || []).map((candidate) => `<option>${escapeHtml(candidate)}</option>`).join("");
+}
+
+function addCustomTrackRow() {
+  const name = document.querySelector("#new-taxonomy-name")?.value.trim();
+  const productArea = document.querySelector("#new-taxonomy-area")?.value || "CBI";
+  const segment = document.querySelector("#new-taxonomy-segment")?.value || (state.config.segmentsByArea[productArea] || [])[0] || "";
+  if (!name) return;
+  const list = document.querySelector(".taxonomy-edit-list");
+  if (!list) return;
+  const order = list.querySelectorAll("[data-custom-track-row]").length;
+  list.insertAdjacentHTML("beforeend", renderCustomTrackRow({ productArea, segment, name, order, archived: false }));
+  document.querySelector("#new-taxonomy-name").value = "";
+}
+
+function parseCustomTrackRows() {
+  return [...document.querySelectorAll("[data-custom-track-row]")].map((row, index) => ({
+    id: row.dataset.id || "",
+    productArea: row.querySelector("select[name='productArea']")?.value || "",
+    segment: row.querySelector("select[name='segment']")?.value || "",
+    name: row.querySelector("input[name='name']")?.value.trim() || "",
+    order: Number(row.querySelector("input[name='order']")?.value || index),
+    archived: row.querySelector("input[name='archived']")?.checked || false,
+  })).filter((track) => track.productArea && track.segment && track.name);
+}
+
+function renderTaxonomyArea(area) {
+  return html`
+    <article class="taxonomy-area">
+      <h3>${escapeHtml(area)}</h3>
+      ${(state.config.segmentsByArea[area] || []).map((segment) => html`
+        <div class="taxonomy-segment">
+          <strong>${escapeHtml(segment)}</strong>
+          <div class="pill-list">${(state.config.tracksByAreaSegment[`${area}::${segment}`] || []).map((track) => `<span>${escapeHtml(track)}</span>`).join("")}</div>
+        </div>
+      `).join("")}
+    </article>
+  `;
+}
+
+function renderManagementNotes() {
+  return html`
+    <section class="management-block">
+      <h2>Archive Folder</h2>
+      <p class="muted">Archived records are hidden from the default dashboard and kept in a searchable folder. Records are never physically deleted by archive.</p>
+      <div class="row"><button class="secondary" id="management-show-archived">Open Archive Folder</button></div>
+    </section>
+  `;
+}
+
+function renderPmAccountsForm() {
+  return html`
+    <form id="pm-accounts-form" class="grid">
+      <div>
+        <h2>PM Account Mapping</h2>
+        <p class="muted">PM Team logs in with account id plus passcode 000. Product Lead can freely name each account and add more accounts after pm08.</p>
+      </div>
+      <div class="account-map">
+        ${state.config.pmAccounts.map((account) => renderPmAccountRow(account)).join("")}
+      </div>
+      <div class="row"><button type="button" class="secondary" id="add-pm-account">Add PM Account</button><button type="submit">Save Mapping</button></div>
+      <div class="error" id="form-error"></div>
+    </form>
+  `;
+}
+
+function nextPmAccountId() {
+  const numbers = state.config.pmAccounts
+    .map((account) => String(account.accountId || "").match(/^pm(\d+)$/i)?.[1])
+    .filter(Boolean)
+    .map(Number);
+  const next = Math.max(0, ...numbers) + 1;
+  return `pm${String(next).padStart(2, "0")}`;
+}
+
+function renderPmAccountRow(account) {
+  return html`
+    <div class="account-row" data-account-row="${escapeHtml(account.accountId)}">
+      <label>Account ID <input name="accountId" value="${escapeHtml(account.accountId)}" pattern="pm\\d+" required /></label>
+      <label>PM Name <input name="pmProfile" value="${escapeHtml(account.pmProfile)}" required /></label>
+      <label class="checkline"><input type="checkbox" name="active" ${account.active ? "checked" : ""} /> Active</label>
+    </div>
+  `;
+}
+
+function renderItemForm(item) {
+  const isEdit = Boolean(item);
+  const productArea = item?.productArea || state.config.productAreas[0];
+  const segment = item?.segment || state.config.segmentsByArea[productArea][0];
+  const track = item?.track || state.config.tracksByAreaSegment[`${productArea}::${segment}`][0];
+  const ownerDefault = item?.owner || state.selectedPmProfile || ownerProfiles()[0];
+  const currentProductWorkstream = deriveProductWorkstream(item);
+  const productWorkstreams = productWorkstreamOptions(productArea, segment, item);
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+        <div class="modal-head">
+          <div><h2>${isEdit ? "Edit Update Item" : "Create New Update Item"}</h2><p class="muted">Create an update item under an existing Product / Workstream, or define a new Product / Workstream.</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="item-form" class="grid form-grid">
+          <div class="form-section-title full">1. Classification</div>
+          <label>Product Area <select name="productArea" required>${state.config.productAreas.map((area) => `<option ${area === productArea ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}</select></label>
+          <label>Segment <select name="segment" required></select></label>
+          <label>Track / Category <select name="track" required></select></label>
+          <div class="track-add-control">
+            <input id="new-track-input" placeholder="New category name" />
+            <button type="button" class="secondary" id="add-track-category">+ Add category</button>
+          </div>
+          <div class="form-section-title full">2. Product / Workstream</div>
+          <label class="full">Select existing Product / Workstream
+            <select name="existingProductWorkstream">
+              <option value="">Select existing Product / Workstream</option>
+              ${productWorkstreams.map((name) => `<option value="${escapeHtml(name)}" ${name === currentProductWorkstream ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}
+            </select>
+          </label>
+          <div class="form-or full">or</div>
+          <label class="full">Create new Product / Workstream <input name="newProductWorkstream" placeholder="e.g. Polaris" value="${productWorkstreams.includes(currentProductWorkstream) ? "" : escapeHtml(currentProductWorkstream)}" /></label>
+          <input type="hidden" name="productWorkstream" value="${escapeHtml(currentProductWorkstream)}" />
+
+          <div class="form-section-title full">3. Update Item Details</div>
+          <label class="full">Update Item Title <input name="title" required placeholder="e.g. Polaris — BAF Access Preparation" value="${escapeHtml(item?.title || "")}" /></label>
+          <label class="full">Description <span class="optional-label">Optional</span><textarea name="description" placeholder="Background/context">${escapeHtml(item?.description || "")}</textarea></label>
+          <label>Owner <select name="owner" required>${ownerProfiles().map((name) => `<option ${name === ownerDefault ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select></label>
+          <label>Status <select name="status" required>${state.config.statuses.map((status) => `<option ${status === (item?.status || "Backlog") ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></label>
+          <label>Target Completion Date <input name="targetCompletionDate" type="date" required value="${escapeHtml(item?.targetCompletionDate || "")}" /></label>
+          <label class="checkline full qa-toggle"><input name="isQaIssue" type="checkbox" ${item?.isQaIssue ? "checked" : ""} /> QA issue</label>
+          <label class="full blocker-field" id="item-blocker-field" ${needsBlockerDelay(item?.status) ? "" : "hidden"}>Blocker / Delay <textarea name="blockerRisk" placeholder="Required when status is Blocked or Delay">${escapeHtml(item?.blockerRisk || "")}</textarea></label>
+          <label class="full">Related Links <span class="optional-label">Optional</span><textarea name="relatedLinks" placeholder="Label | https://example.com">${escapeHtml(linkLines(item?.relatedLinks || []))}</textarea></label>
+          <label class="full">Sub-tasks <span class="optional-label">Optional</span><textarea name="subTasks" placeholder="One sub-task per line">${escapeHtml(taskLines(item?.subTasks || []))}</textarea></label>
+          <input type="hidden" name="allowNewTrack" value="" />
+          <div class="full row"><button type="submit">${isEdit ? "Save Changes" : "Create Item"}</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function renderWeeklyForm(itemId, entry = null) {
+  const items = allWeeklyItems();
+  const isEdit = Boolean(entry);
+  const directItem = Boolean(state.modal?.direct || isEdit);
+  const selectedItem = items.find((item) => item.id === itemId) || (directItem ? items[0] : null);
+  const workstreams = workstreamsForItem(selectedItem, entry);
+  const selectedWorkstream = workstreams.find((workstream) => workstream.id === entry?.workstreamId || workstream.title === entry?.workstreamTitle) || workstreams[0];
+  const selection = weeklySelectionOptions({ item: selectedItem, allowBlank: !directItem });
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+        <div class="modal-head">
+          <div><h2>${isEdit ? "Edit Weekly Update" : "Add Weekly Update"}</h2><p class="muted">${isEdit ? "Only this timeline entry will be updated." : "Add this week’s progress to an existing Update Item."}</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <form id="weekly-form" class="grid form-grid">
+          ${directItem
+            ? `<input type="hidden" name="itemId" value="${escapeHtml(selectedItem?.id || "")}" />`
+            : html`
+                <div class="form-section-title full">1. Select Existing Item</div>
+                <label>Product Area <select name="weeklyProductArea" required><option value="">Select Product Area</option>${selection.productAreas.map((area) => `<option value="${escapeHtml(area)}" ${area === selection.productArea ? "selected" : ""}>${escapeHtml(area)}</option>`).join("")}</select></label>
+                <label>Segment <select name="weeklySegment" required><option value="">Select Segment</option>${selection.segments.map((segment) => `<option value="${escapeHtml(segment)}" ${segment === selection.segment ? "selected" : ""}>${escapeHtml(segment)}</option>`).join("")}</select></label>
+                <label>Track / Category <select name="weeklyTrack" required><option value="">Select Track / Category</option>${selection.tracks.map((track) => `<option value="${escapeHtml(track)}" ${track === selection.track ? "selected" : ""}>${escapeHtml(track)}</option>`).join("")}</select></label>
+                <label>Product / Workstream <select name="weeklyProductWorkstream" required><option value="">Select Product / Workstream</option>${selection.productWorkstreams.map((name) => `<option value="${escapeHtml(name)}" ${name === selection.productWorkstream ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")}</select></label>
+                <label class="full">Update Item <select name="itemId" required><option value="">Select Update Item</option>${selection.updateItems.map((item) => `<option value="${item.id}" ${item.id === selectedItem?.id ? "selected" : ""}>${escapeHtml(item.title)}</option>`).join("")}</select></label>
+              `}
+          <div class="weekly-item-info full" id="weekly-item-info">${renderWeeklyItemInfo(selectedItem)}</div>
+          <input type="hidden" name="workstreamTitle" value="${escapeHtml(selectedWorkstream?.title || DEFAULT_WORKSTREAM_TITLE)}" />
+          <input type="hidden" name="workstreamId" value="${escapeHtml(selectedWorkstream?.id || "")}" />
+          <div class="form-section-title full">${directItem ? "1" : "2"}. Previous Update Reference</div>
+          <div class="reference full" id="previous-reference">${selectedItem ? "Loading previous update reference..." : "Select an Update Item to view previous update reference."}</div>
+          <div class="form-section-title full">${directItem ? "2" : "3"}. Weekly Update</div>
+          <label>Reporting week <input name="reportingWeek" required pattern="\\d{4}-\\d{2}" value="${escapeHtml(entry?.reportingWeek || state.selectedWeek || state.config.currentReportingWeek)}" /></label>
+          <label>Status at update time <select name="status" required>${state.config.statuses.map((status) => `<option ${status === (entry?.status || selectedItem?.status || "Backlog") ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></label>
+          <label class="full">Progress this week <span class="optional-label">Optional</span><textarea name="progress">${escapeHtml(entry?.progress || "")}</textarea></label>
+          <label class="full">Next step <span class="optional-label">Optional</span><textarea name="nextStep">${escapeHtml(entry?.nextStep || "")}</textarea></label>
+          <label class="full blocker-field" id="weekly-blocker-field" ${needsBlockerDelay(entry?.status || selectedItem?.status) ? "" : "hidden"}>Blocker / Delay <textarea name="blockerRisk">${escapeHtml(entry?.blockerRisk || "")}</textarea></label>
+          <label class="full">Related links <span class="optional-label">Optional</span><textarea name="relatedLinks" placeholder="Label | https://example.com">${escapeHtml(linkLines(entry?.relatedLinks || []))}</textarea></label>
+          <div class="full row"><button type="submit" ${selectedItem ? "" : "disabled"}>${isEdit ? "Save Weekly Update" : "Submit Weekly Update"}</button></div>
+          <div class="error full" id="form-error"></div>
+        </form>
+      </section>
+    </div>
+  `;
+}
+
+function renderDetail() {
+  const item = state.detail;
+  return html`
+    <div class="modal">
+      <section class="modal-panel">
+        <div class="modal-head">
+          <div><h2>${escapeHtml(item.title)}</h2><p class="muted">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</p></div>
+          <button class="secondary" data-close>Close</button>
+        </div>
+        <div class="grid">
+          <div class="meta">
+            <div><span>Owner</span>${escapeHtml(item.owner)}</div>
+            <div><span>Status</span><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>
+            <div><span>Lifecycle</span>${escapeHtml(item.lifecycleState || lifecycleState(item))}</div>
+            <div><span>QA issue</span>${item.isQaIssue ? "Yes" : "No"}</div>
+            <div><span>Target completion</span>${escapeHtml(item.targetCompletionDate)}</div>
+            <div><span>Created</span>${escapeHtml(item.createdBy || "-")} · ${formatDateTime(item.createdAt)}</div>
+            <div><span>Last updated</span>${escapeHtml(item.lastUpdatedBy)} · ${formatDateTime(item.lastUpdatedAt)}</div>
+            ${item.doneWeek ? `<div><span>Done</span>${escapeHtml(item.doneWeek)} · ${escapeHtml(item.doneDate || "-")}</div>` : ""}
+            ${item.archived ? `<div><span>Archived reason</span>${escapeHtml(item.archivedReason || "-")}</div>` : ""}
+          </div>
+          <p>${escapeHtml(item.description)}</p>
+          <section class="detail-block">
+            <h3>Related Links</h3>
+            ${renderLinks(item.relatedLinks)}
+          </section>
+          <section class="detail-block">
+            <h3>Workstreams</h3>
+            ${renderWorkstreams(item.workstreams || item.subTasks)}
+          </section>
+          <div class="row">${canEdit() ? `<button data-weekly="${item.id}">Add Update</button>` : ""}${canArchive() && !item.archived ? `<button class="danger" id="archive-item">Archive</button>` : ""}${canAdmin() ? `<button class="danger" id="delete-item">Delete Update Item</button>` : ""}</div>
+          ${state.archivePrompt ? html`
+            <form id="archive-form" class="archive-form">
+              <label class="full">Archive reason <textarea name="archivedReason" required placeholder="Why should this item be hidden from the default dashboard?"></textarea></label>
+              <div class="row">
+                <button class="danger" type="submit">Confirm Archive</button>
+                <button class="secondary" type="button" id="cancel-archive">Cancel</button>
+              </div>
+            </form>
+          ` : ""}
+          <h3 class="timeline-title">Timeline</h3>
+          <div class="timeline">
+            ${item.weeklyUpdates.length ? item.weeklyUpdates.map(renderTimelineEntry).join("") : `<div class="empty">No weekly updates yet.</div>`}
+          </div>
+          <div class="error" id="form-error"></div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderTimelineEntry(entry) {
+  return html`
+    <article class="timeline-entry">
+      <div class="timeline-marker" aria-hidden="true"></div>
+      <div class="timeline-entry-body">
+        <header>
+          <div>
+            <span>${escapeHtml(entry.reportingWeek)}</span>
+            <strong>${escapeHtml(workstreamLabel(entry.workstreamTitle || DEFAULT_WORKSTREAM_TITLE))}</strong>
+          </div>
+          <span class="badge ${statusClass(entry.status)}">${escapeHtml(entry.status)}</span>
+        </header>
+        <div class="timeline-meta-line">
+          <span>Submitted ${formatDateTime(entry.submittedAt)} by ${escapeHtml(entry.submittedBy)}</span>
+          <span>Updated ${formatDateTime(entry.lastUpdatedAt)} by ${escapeHtml(entry.lastUpdatedBy)}</span>
+        </div>
+        <div class="timeline-copy-grid">
+          <div>
+            <span>Progress this week</span>
+            <p>${escapeHtml(cleanProgress(entry))}</p>
+          </div>
+          <div>
+            <span>Next step</span>
+            <p>${escapeHtml(entry.nextStep || "-")}</p>
+          </div>
+          ${hasMeaningfulBlocker(entry.blockerRisk) ? `<div class="timeline-risk"><span>Blocker / Delay</span><p>${escapeHtml(entry.blockerRisk)}</p></div>` : ""}
+        </div>
+        <div class="timeline-links"><strong>Related links</strong>${renderLinks(entry.relatedLinks)}</div>
+        ${canEdit() ? `<div class="row"><button class="secondary" data-edit-weekly="${entry.id}">Edit Entry</button></div>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderLinks(links = []) {
+  if (!links.length) return `<p class="muted">No related links.</p>`;
+  return html`<div class="link-list">${links.map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>`).join("")}</div>`;
+}
+
+function renderWorkstreams(workstreams = []) {
+  const meaningfulWorkstreams = workstreams
+    .map((workstream) => ({ ...workstream, title: workstreamLabel(workstream.title || workstream) }))
+    .filter((workstream) => workstream.title && !isPlaceholderWorkstream(workstream.title));
+  if (!meaningfulWorkstreams.length) return `<p class="muted">No workstreams.</p>`;
+  return html`<div class="task-list workstream-list">${meaningfulWorkstreams.map((workstream) => `<span class="${workstream.done ? "is-done" : "is-active"}">${workstream.done ? "Done" : "In progress"} · ${escapeHtml(workstream.title)}</span>`).join("")}</div>`;
+}
+
+document.addEventListener("click", async (event) => {
+  if (event.target.matches("#add-capacity-row")) {
+    document.querySelector(".capacity-edit-list")?.insertAdjacentHTML("beforeend", renderCapacityInputRow({
+      status: "Active",
+      q1: "",
+      q1Total: 64,
+      q2: "",
+      q2Total: 65,
+      q3: "",
+      q3Total: 66,
+      q4: "",
+      q4Total: 66,
+    }));
+  }
+  if (event.target.matches("[data-close]")) {
+    state.modal = null;
+    state.detail = null;
+    state.archivePrompt = false;
+    render();
+  }
+  if (event.target.matches("#archive-item")) {
+    state.archivePrompt = true;
+    render();
+  }
+  if (event.target.matches("#cancel-archive")) {
+    state.archivePrompt = false;
+    render();
+  }
+  if (event.target.matches("#delete-item")) {
+    if (!window.confirm("Delete this Update Item and all of its weekly timeline entries?")) return;
+    try {
+      await api(`/api/items/${state.detail.id}`, { method: "DELETE" });
+      state.modal = null;
+      state.detail = null;
+      await loadDashboard();
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("[data-delete-update]")) {
+    if (!window.confirm("Delete this Update Item and all of its weekly timeline entries?")) return;
+    await api(`/api/items/${event.target.dataset.deleteUpdate}`, { method: "DELETE" });
+    await loadDashboard();
+    render();
+  }
+  if (event.target.matches("[data-edit-weekly]")) {
+    const entry = state.detail?.weeklyUpdates.find((candidate) => candidate.id === event.target.dataset.editWeekly);
+    if (!entry) return;
+    state.modal = { type: "weekly", itemId: state.detail.id, entry };
+    render();
+    loadPreviousReference();
+  }
+  if (event.target.matches("[data-edit-announcement]")) {
+    const announcement = (state.modules.announcements || []).find((item) => item.id === event.target.dataset.editAnnouncement);
+    if (!announcement) return;
+    state.modal = { type: "announcement", announcement };
+    render();
+  }
+  if (event.target.matches("[data-delete-announcement]")) {
+    if (!window.confirm("Delete this announcement?")) return;
+    await api(`/api/announcements/${event.target.dataset.deleteAnnouncement}`, { method: "DELETE" });
+    await loadModules();
+    render();
+  }
+  if (event.target.matches("[data-edit-meeting]")) {
+    const meeting = (state.modules.meetings || []).find((item) => item.id === event.target.dataset.editMeeting);
+    if (!meeting) return;
+    state.modal = { type: "meeting", meeting };
+    render();
+  }
+  if (event.target.matches("[data-delete-meeting]")) {
+    if (!window.confirm("Delete this meeting note?")) return;
+    await api(`/api/meetings/${event.target.dataset.deleteMeeting}`, { method: "DELETE" });
+    await loadModules();
+    render();
+  }
+  if (event.target.matches("[data-delete-marketing]")) {
+    if (!window.confirm("Delete this PMM asset?")) return;
+    await api(`/api/marketing-assets/${event.target.dataset.deleteMarketing}`, { method: "DELETE" });
+    await loadModules();
+    render();
+  }
+  if (event.target.matches("[data-edit-marketing]")) {
+    const asset = (state.modules.marketing || []).find((item) => item.id === event.target.dataset.editMarketing);
+    if (!asset) return;
+    state.modal = { type: "marketing", asset };
+    render();
+  }
+  if (event.target.matches("#add-custom-track")) {
+    addCustomTrackRow();
+  }
+  if (event.target.matches("[data-remove-custom-track]")) {
+    event.target.closest("[data-custom-track-row]")?.remove();
+  }
+});
+
+document.addEventListener("change", (event) => {
+  if (event.target.matches("select[name='productArea']")) updateDependentSelects();
+  if (event.target.matches("select[name='segment']")) updateTrackSelect();
+  if (event.target.matches("#new-taxonomy-area")) updateNewTaxonomySegment();
+  if (event.target.matches("[data-custom-track-row] select[name='productArea']")) updateCustomTrackRowSegments(event.target.closest("[data-custom-track-row]"));
+  if (event.target.matches("#item-form select[name='track']")) updateProductWorkstreamSelect();
+  if (event.target.matches("#item-form select[name='existingProductWorkstream']")) syncProductWorkstreamField();
+  if (event.target.matches("#item-form select[name='status']")) handleItemStatusChange(event.target);
+  if (event.target.matches("#weekly-form select[name='status']")) handleWeeklyStatusChange(event.target);
+  if (event.target.matches("#weekly-form select[name='weeklyProductArea'], #weekly-form select[name='weeklySegment'], #weekly-form select[name='weeklyTrack'], #weekly-form select[name='weeklyProductWorkstream']")) updateWeeklyHierarchySelects(event.target.name);
+  if (event.target.matches("#weekly-form select[name='itemId']")) updateWeeklySelectedItem();
+  if (event.target.matches("#weekly-form select[name='itemId'], #weekly-form input[name='reportingWeek']")) loadPreviousReference();
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target.matches("#item-form input[name='newProductWorkstream']")) syncProductWorkstreamField();
+});
+
+document.addEventListener("submit", async (event) => {
+  if (event.target.matches("#taxonomy-form")) {
+    event.preventDefault();
+    try {
+      const data = await api("/api/taxonomy/tracks", {
+        method: "PUT",
+        body: JSON.stringify({ customTracks: parseCustomTrackRows() }),
+      });
+      state.config.customTracks = data.customTracks;
+      state.config.tracksByAreaSegment = data.tracksByAreaSegment;
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#archive-form")) {
+    event.preventDefault();
+    const form = event.target;
+    const archivedReason = form.archivedReason.value.trim();
+    if (!archivedReason) {
+      document.querySelector("#form-error").textContent = "Archive reason is required.";
+      return;
+    }
+    try {
+      await api(`/api/items/${state.detail.id}/archive`, { method: "POST", body: JSON.stringify({ archivedReason }) });
+      state.modal = null;
+      state.detail = null;
+      state.archivePrompt = false;
+      await loadDashboard();
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#item-form")) {
+    event.preventDefault();
+    const form = event.target;
+    syncProductWorkstreamField();
+    if (!form.productWorkstream.value.trim()) {
+      document.querySelector("#form-error").textContent = "Product / Workstream is required.";
+      return;
+    }
+    if (needsBlockerDelay(form.status.value) && !form.blockerRisk.value.trim()) {
+      document.querySelector("#form-error").textContent = "Blocker / Delay is required when status is Blocked or Delay.";
+      return;
+    }
+    const payload = Object.fromEntries(new FormData(event.target));
+    payload.productWorkstream = payload.newProductWorkstream?.trim() || payload.existingProductWorkstream?.trim() || payload.productWorkstream?.trim();
+    payload.isQaIssue = form.isQaIssue?.checked || false;
+    const itemId = state.modal.item?.id;
+    try {
+      await api(itemId ? `/api/items/${itemId}` : "/api/items", {
+        method: itemId ? "PUT" : "POST",
+        body: JSON.stringify(payload),
+      });
+      state.modal = null;
+      await loadDashboard();
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#weekly-form")) {
+    event.preventDefault();
+    const payload = Object.fromEntries(new FormData(event.target));
+    const entryId = state.modal.entry?.id;
+    if (needsBlockerDelay(payload.status) && !String(payload.blockerRisk || "").trim()) {
+      document.querySelector("#form-error").textContent = "Blocker / Delay is required when status is Blocked or Delay.";
+      return;
+    }
+    try {
+      await api(entryId ? `/api/weekly-updates/${entryId}` : "/api/weekly-updates", {
+        method: entryId ? "PUT" : "POST",
+        body: JSON.stringify(payload),
+      });
+      if (state.detail) state.detail = await api(`/api/items/${payload.itemId}`);
+      state.modal = state.detail ? { type: "detail" } : null;
+      await loadDashboard();
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#pm-accounts-form")) {
+    event.preventDefault();
+    const form = event.target;
+    const pmAccounts = [...form.querySelectorAll("[data-account-row]")].map((row) => ({
+      accountId: row.querySelector("[name='accountId']").value,
+      pmProfile: row.querySelector("[name='pmProfile']").value,
+      active: row.querySelector("[name='active']").checked,
+    }));
+    try {
+      const data = await api("/api/pm-accounts", {
+        method: "PUT",
+        body: JSON.stringify({ pmAccounts }),
+      });
+      state.config.pmAccounts = data.pmAccounts;
+      state.config.pmProfiles = ownerProfiles();
+      state.modal = null;
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#marketing-form")) {
+    event.preventDefault();
+    const payload = Object.fromEntries(new FormData(event.target));
+    payload.archived = event.target.archived?.checked || payload.status === "Archived";
+    const assetId = state.modal?.asset?.id;
+    await api(assetId ? `/api/marketing-assets/${assetId}` : "/api/marketing-assets", {
+      method: assetId ? "PUT" : "POST",
+      body: JSON.stringify(payload),
+    });
+    state.modal = null;
+    await loadModules();
+    if (state.view === "productMarketing") renderProductMarketing();
+    else render();
+  }
+  if (event.target.matches("#meeting-form")) {
+    event.preventDefault();
+    const payload = Object.fromEntries(new FormData(event.target));
+    const meetingId = state.modal?.meeting?.id;
+    await api(meetingId ? `/api/meetings/${meetingId}` : "/api/meetings", {
+      method: meetingId ? "PUT" : "POST",
+      body: JSON.stringify(payload),
+    });
+    state.modal = null;
+    await loadModules();
+    renderMeetings();
+  }
+  if (event.target.matches("#announcement-form")) {
+    event.preventDefault();
+    const payload = Object.fromEntries(new FormData(event.target));
+    payload.archived = event.target.archived?.checked || false;
+    const announcementId = state.modal?.announcement?.id;
+    await api(announcementId ? `/api/announcements/${announcementId}` : "/api/announcements", {
+      method: announcementId ? "PUT" : "POST",
+      body: JSON.stringify(payload),
+    });
+    state.modal = null;
+    await loadModules();
+    render();
+  }
+  if (event.target.matches("#passcode-form")) {
+    event.preventDefault();
+    try {
+      const data = await api("/api/passcodes", {
+        method: "PUT",
+        body: JSON.stringify({ passcodes: Object.fromEntries(new FormData(event.target)) }),
+      });
+      state.config.passcodes = data.passcodes;
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("#capacity-form")) {
+    event.preventDefault();
+    const form = event.target;
+    try {
+      const data = await api("/api/capacity", {
+        method: "PUT",
+        body: JSON.stringify({
+          metricDefinition: state.modules.capacity?.metricDefinition || "PM Timesheet.",
+          summary: parseCapacitySummaryForm(form),
+          records: parseCapacityFormRows(form),
+        }),
+      });
+      state.modules.capacity = data.capacity;
+      state.modal = null;
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.matches("[data-edit]")) {
+    event.preventDefault();
+    api(`/api/items/${event.target.dataset.edit}`).then((item) => {
+      state.modal = { type: "item", item };
+      render();
+    });
+  }
+  if (event.target.matches("#add-pm-account")) {
+    state.config.pmAccounts = [
+      ...state.config.pmAccounts,
+      { accountId: nextPmAccountId(), pmProfile: "", active: true },
+    ];
+    render();
+  }
+  if (event.target.matches("#add-track-category")) {
+    addTrackCategoryToForm();
+  }
+});
+
+function handleItemStatusChange(select) {
+  const form = document.querySelector("#item-form");
+  const blockerField = document.querySelector("#item-blocker-field");
+  if (!form || !blockerField) return;
+  blockerField.hidden = !needsBlockerDelay(select.value);
+}
+
+function handleWeeklyStatusChange(select) {
+  const blockerField = document.querySelector("#weekly-blocker-field");
+  if (!blockerField) return;
+  blockerField.hidden = !needsBlockerDelay(select.value);
+}
+
+function addTrackCategoryToForm() {
+  const form = document.querySelector("#item-form");
+  const input = document.querySelector("#new-track-input");
+  if (!form || !input) return;
+  const value = input.value.trim();
+  if (!value) return;
+  const exists = [...form.track.options].some((option) => option.value.toLowerCase() === value.toLowerCase());
+  if (!exists) form.track.add(new Option(value, value));
+  form.track.value = value;
+  form.allowNewTrack.value = value;
+  input.value = "";
+}
+
+function updateWeeklyHierarchySelects(changedName = "") {
+  const form = document.querySelector("#weekly-form");
+  if (!form) return;
+  const selection = weeklySelectionOptions({
+    productArea: form.weeklyProductArea?.value,
+    segment: changedName === "weeklyProductArea" ? "" : form.weeklySegment?.value,
+    track: ["weeklyProductArea", "weeklySegment"].includes(changedName) ? "" : form.weeklyTrack?.value,
+    productWorkstream: ["weeklyProductArea", "weeklySegment"].includes(changedName) ? "" : form.weeklyProductWorkstream?.value,
+    allowBlank: true,
+  });
+  form.weeklySegment.innerHTML = [`<option value="">Select Segment</option>`, ...selection.segments.map((segment) => `<option value="${escapeHtml(segment)}" ${segment === selection.segment ? "selected" : ""}>${escapeHtml(segment)}</option>`)].join("");
+  form.weeklyTrack.innerHTML = [`<option value="">Select Track / Category</option>`, ...selection.tracks.map((track) => `<option value="${escapeHtml(track)}" ${track === selection.track ? "selected" : ""}>${escapeHtml(track)}</option>`)].join("");
+  form.weeklyProductWorkstream.innerHTML = [`<option value="">Select Product / Workstream</option>`, ...selection.productWorkstreams.map((name) => `<option value="${escapeHtml(name)}" ${name === selection.productWorkstream ? "selected" : ""}>${escapeHtml(name)}</option>`)].join("");
+  form.itemId.innerHTML = [`<option value="">Select Update Item</option>`, ...selection.updateItems.map((item) => `<option value="${item.id}">${escapeHtml(item.title)}</option>`)].join("");
+  updateWeeklySelectedItem();
+}
+
+function updateWeeklySelectedItem() {
+  const form = document.querySelector("#weekly-form");
+  if (!form) return;
+  const item = allWeeklyItems().find((candidate) => candidate.id === form.itemId.value);
+  const workstream = workstreamsForItem(item)[0];
+  form.workstreamId.value = workstream?.id || "";
+  form.workstreamTitle.value = workstream?.title || DEFAULT_WORKSTREAM_TITLE;
+  const info = document.querySelector("#weekly-item-info");
+  if (info) info.innerHTML = renderWeeklyItemInfo(item);
+  const submit = form.querySelector("button[type='submit']");
+  if (submit) submit.disabled = !item;
+  loadPreviousReference();
+}
+
+function updateDependentSelects() {
+  const form = document.querySelector("#item-form");
+  if (!form) return;
+  form.allowNewTrack.value = "";
+  const area = form.productArea.value;
+  const segmentSelect = form.segment;
+  segmentSelect.innerHTML = state.config.segmentsByArea[area].map((segment) => `<option>${escapeHtml(segment)}</option>`).join("");
+  updateTrackSelect();
+}
+
+function updateTrackSelect() {
+  const form = document.querySelector("#item-form");
+  if (!form) return;
+  form.allowNewTrack.value = "";
+  const key = `${form.productArea.value}::${form.segment.value}`;
+  const itemTrack = state.modal?.item?.track;
+  const tracks = [...new Set([...(state.config.tracksByAreaSegment[key] || []), itemTrack].filter(Boolean))];
+  form.track.innerHTML = tracks.map((track) => `<option>${escapeHtml(track)}</option>`).join("");
+  updateProductWorkstreamSelect();
+}
+
+function updateProductWorkstreamSelect() {
+  const form = document.querySelector("#item-form");
+  if (!form?.existingProductWorkstream) return;
+  const item = state.modal?.item;
+  const current = form.productWorkstream.value || deriveProductWorkstream(item);
+  const options = productWorkstreamOptions(form.productArea.value, form.segment.value, item);
+  form.existingProductWorkstream.innerHTML = [
+    `<option value="">Select existing Product / Workstream</option>`,
+    ...options.map((name) => `<option value="${escapeHtml(name)}" ${name === current ? "selected" : ""}>${escapeHtml(name)}</option>`),
+  ].join("");
+  if (options.includes(current)) form.newProductWorkstream.value = "";
+  syncProductWorkstreamField();
+}
+
+function syncProductWorkstreamField() {
+  const form = document.querySelector("#item-form");
+  if (!form?.productWorkstream) return;
+  const created = form.newProductWorkstream?.value.trim();
+  form.productWorkstream.value = created || form.existingProductWorkstream?.value || "";
+  applyMatchedOwnerDefault();
+}
+
+function applyMatchedOwnerDefault() {
+  const form = document.querySelector("#item-form");
+  if (!form?.owner || !form.productWorkstream?.value) return;
+  const matchedOwner = matchingProductWorkstreamOwner(form.productArea.value, form.segment.value, form.productWorkstream.value);
+  if (matchedOwner && [...form.owner.options].some((option) => option.value === matchedOwner)) form.owner.value = matchedOwner;
+}
+
+async function loadPreviousReference() {
+  const form = document.querySelector("#weekly-form");
+  const box = document.querySelector("#previous-reference");
+  if (!form || !box) return;
+  if (!form.itemId.value) {
+    box.textContent = "Select an Update Item to view previous update reference.";
+    return;
+  }
+  box.textContent = "Loading previous update reference...";
+  try {
+    const params = new URLSearchParams({ week: form.reportingWeek.value });
+    if (state.modal?.entry?.id) params.set("excludeEntryId", state.modal.entry.id);
+    const data = await api(`/api/items/${form.itemId.value}/previous-update?${params.toString()}`);
+    if (!data.previousUpdate) {
+      box.textContent = "No previous update available.";
+      return;
+    }
+    const previous = data.previousUpdate;
+    box.innerHTML = html`
+      <strong>Previous Update Reference (${escapeHtml(previous.reportingWeek)} · ${escapeHtml(workstreamLabel(previous.workstreamTitle || DEFAULT_WORKSTREAM_TITLE))})</strong>
+      <p><strong>Progress:</strong> ${escapeHtml(previous.progress)}</p>
+      <p><strong>Next step:</strong> ${escapeHtml(previous.nextStep || "-")}</p>
+      ${hasMeaningfulBlocker(previous.blockerRisk) ? `<p><strong>Blocker / Delay:</strong> ${escapeHtml(previous.blockerRisk)}</p>` : ""}
+    `;
+  } catch (error) {
+    box.textContent = error.message;
+  }
+}
+
+const observer = new MutationObserver(() => {
+  const itemForm = document.querySelector("#item-form");
+  if (itemForm && !itemForm.segment.options.length) {
+    const item = state.modal?.item;
+    updateDependentSelects();
+    if (item) {
+      itemForm.segment.value = item.segment;
+      updateTrackSelect();
+      itemForm.track.value = item.track;
+      updateProductWorkstreamSelect();
+    }
+  }
+});
+
+observer.observe(app, { childList: true, subtree: true });
+init();

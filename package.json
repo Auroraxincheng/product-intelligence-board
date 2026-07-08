@@ -1,0 +1,16 @@
+{
+  "name": "product-intelligence-board",
+  "version": "0.1.0",
+  "private": true,
+  "description": "P0-lite Product Intelligence Board core update workflow",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "check": "node --check server.js && node --check src/auth.js && node --check src/config.js && node --check src/store.js && node --check public/app.js",
+    "upload:db": "node scripts/upload-store-to-supabase.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

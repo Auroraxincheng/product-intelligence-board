@@ -1,0 +1,3405 @@
+{
+  "passcodes": {
+    "viewer": "000",
+    "pm_team": "000",
+    "product_lead": "000",
+    "admin": "000",
+    "pmm": "000"
+  },
+  "pmAccounts": [
+    {
+      "accountId": "pm01",
+      "pmProfile": "Arbi",
+      "active": true
+    },
+    {
+      "accountId": "pm02",
+      "pmProfile": "Kintan",
+      "active": true
+    },
+    {
+      "accountId": "pm03",
+      "pmProfile": "Stephen",
+      "active": true
+    },
+    {
+      "accountId": "pm04",
+      "pmProfile": "Martin",
+      "active": true
+    },
+    {
+      "accountId": "pm05",
+      "pmProfile": "Aaron",
+      "active": true
+    },
+    {
+      "accountId": "pm06",
+      "pmProfile": "Min Hou",
+      "active": true
+    },
+    {
+      "accountId": "pm07",
+      "pmProfile": "Fadlim",
+      "active": true
+    },
+    {
+      "accountId": "pm08",
+      "pmProfile": "Aurora",
+      "active": true
+    },
+    {
+      "accountId": "pm09",
+      "pmProfile": "xixixi",
+      "active": true
+    },
+    {
+      "accountId": "pm10",
+      "pmProfile": "lalala",
+      "active": true
+    }
+  ],
+  "updateItems": [
+    {
+      "id": "f482c7af-c8d7-484d-9d12-ffa172156cf5",
+      "title": "TEST",
+      "description": "",
+      "productWorkstream": "TEST",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "Delay",
+      "isQaIssue": false,
+      "blockerRisk": "",
+      "targetCompletionDate": "2026-07-24",
+      "relatedLinks": [],
+      "workstreams": [
+        {
+          "id": "e5ec68f5-3ce0-4e40-810d-6cdc5ad6968c",
+          "title": "TEST",
+          "done": false
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "lifecycleState": "Active",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Admin",
+      "createdAt": "2026-07-08T09:10:36.585Z",
+      "lastUpdatedBy": "Arbi",
+      "lastUpdatedAt": "2026-07-08T09:12:47.502Z"
+    },
+    {
+      "id": "9df4bfdb-ca55-4e90-86e5-2275233433f2",
+      "title": "KYC Complaint（VIDA vs Privy）",
+      "description": "",
+      "productWorkstream": "SkorKu 2.0",
+      "productArea": "CBI",
+      "segment": "D2C",
+      "track": "Partnership",
+      "owner": "Stephen",
+      "status": "Backlog",
+      "isQaIssue": false,
+      "blockerRisk": "",
+      "targetCompletionDate": "2026-06-12",
+      "relatedLinks": [],
+      "workstreams": [
+        {
+          "id": "33a44bf8-18a7-4f96-945a-0d2bbe388aef",
+          "title": "SkorKu 2.0",
+          "done": false
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "lifecycleState": "Active",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Admin",
+      "createdAt": "2026-07-08T07:51:50.413Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T07:51:50.413Z"
+    },
+    {
+      "id": "e0c9c4d3-595f-4210-8ead-a0f5e72f45e4",
+      "title": "Telkomsel API Wrapper Done",
+      "description": "",
+      "productWorkstream": "Telcoscore",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "In Progress",
+      "isQaIssue": false,
+      "blockerRisk": "",
+      "targetCompletionDate": "2026-06-12",
+      "relatedLinks": [],
+      "workstreams": [
+        {
+          "id": "76f8afb6-d51c-436d-8f04-37964ebf5a9f",
+          "title": "Telcoscore",
+          "done": false
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "lifecycleState": "Active",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Admin",
+      "createdAt": "2026-07-08T07:36:37.352Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T07:36:37.352Z"
+    },
+    {
+      "id": "0d561c63-5c3e-4b66-b037-f2ba96fa30c6",
+      "title": "Polaris — BAF Access Preparation",
+      "description": "Polaris imported from Lovable and regrouped as one Update Item. Original topics: BAF Access Preparation; Pak Suparman DS Requests.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "POC & Customer Support",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-17",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-06T08:27:18.289Z",
+      "workstreams": [
+        {
+          "id": "5346c23b-45b1-463c-8d48-7ecdb33a275f",
+          "title": "Polaris",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Polaris",
+      "lifecycleState": "Active",
+      "blockerRisk": ""
+    },
+    {
+      "id": "122b8cde-69f4-484b-8489-8c7f74091379",
+      "title": "Polaris — Pak Suparman DS Requests",
+      "description": "Polaris imported from Lovable and regrouped as one Update Item. Original topics: BAF Access Preparation; Pak Suparman DS Requests.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "POC & Customer Support",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-17",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "5a86b422-7969-4210-812f-3ebe8347c759",
+          "title": "Polaris",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Polaris",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "28d89491-b66f-46a5-88b2-ac5aa5eb5f2c",
+      "title": "Data Partner — Ginee Integration",
+      "description": "Data Partner imported from Lovable and regrouped as one Update Item. Original topics: Ginee Integration; Finpay & ESB.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "SME Partnership",
+      "owner": "Kintan",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "5a440522-975a-4fc9-b1e4-008b8a3f2bda",
+          "title": "Data Partner",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Data Partner",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "79898931-5f71-437d-b82f-d0b418165ad5",
+      "title": "Data Partner — Finpay & ESB",
+      "description": "Data Partner imported from Lovable and regrouped as one Update Item. Original topics: Ginee Integration; Finpay & ESB.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "SME Partnership",
+      "owner": "Kintan",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "9210409e-2582-4a86-b71a-ea2b06f16649",
+          "title": "Data Partner",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Data Partner",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "761a9163-a51f-4cf8-ad06-3c17df434b8e",
+      "title": "Testing & Bug Fix",
+      "description": "SkorKu 3.0 imported from Lovable and regrouped as one Update Item. Original topics: Testing & Bug Fix; Pending (After Android 80%); Parallel Testing.",
+      "productArea": "CBI",
+      "segment": "D2C",
+      "track": "Mobile App",
+      "owner": "Stephen",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Arbi",
+      "lastUpdatedAt": "2026-07-06T06:07:57.199Z",
+      "workstreams": [
+        {
+          "id": "3bc11221-0588-419a-a83f-464347743df7",
+          "title": "SkorKu 3.0 Android",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SkorKu 3.0 Android",
+      "lifecycleState": "Active",
+      "blockerRisk": ""
+    },
+    {
+      "id": "7501da52-fa1e-4c7f-a4fe-7ea377c83afe",
+      "title": "SkorKu 3.0 — Pending (After Android 80%)",
+      "description": "SkorKu 3.0 imported from Lovable and regrouped as one Update Item. Original topics: Testing & Bug Fix; Pending (After Android 80%); Parallel Testing.",
+      "productArea": "CBI",
+      "segment": "D2C",
+      "track": "Mobile App",
+      "owner": "Stephen",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "82aeb34d-cd47-4445-8e9b-9660143ff3d5",
+          "title": "SkorKu 3.0 iOS",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SkorKu 3.0 iOS",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "060af48b-1db1-44df-80dd-6a1d1e2e0b2e",
+      "title": "SkorKu 3.0 — Parallel Testing",
+      "description": "SkorKu 3.0 imported from Lovable and regrouped as one Update Item. Original topics: Testing & Bug Fix; Pending (After Android 80%); Parallel Testing.",
+      "productArea": "CBI",
+      "segment": "D2C",
+      "track": "Mobile App",
+      "owner": "Stephen",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "b8ff3911-081e-4d5c-8ae0-21d6bb2a2ed4",
+          "title": "SkorKu 3.0 AWSA",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SkorKu 3.0 AWSA",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "b3506d44-0bb6-4523-a78e-771f5899e24a",
+      "title": "SkorKu 2.0 — Remove Lite + V3 Deployment Prep",
+      "description": "SkorKu 2.0 imported from Lovable and regrouped as one Update Item. Original topics: Remove Lite + V3 Deployment Prep; KYC Complaint (VIDA vs Privy).",
+      "productArea": "CBI",
+      "segment": "D2C",
+      "track": "Web App",
+      "owner": "Stephen",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T07:44:29.208Z",
+      "workstreams": [
+        {
+          "id": "856f00f4-ac9b-4a92-af3b-7a0c31145392",
+          "title": "SkorKu 2.0",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SkorKu 2.0",
+      "lifecycleState": "Active",
+      "isQaIssue": false,
+      "blockerRisk": ""
+    },
+    {
+      "id": "88621c08-a4e8-4b1a-8ee5-6ba2d5ad68a2",
+      "title": "Agent KIM — BD Training Session 18 June",
+      "description": "Agent KIM imported from Lovable and regrouped as one Update Item. Original topics: BD Training Session 18 June; Portfolio Alert V2 Presales Refresher.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent KIM",
+      "owner": "Fadlim",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-18",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "d352e649-53e4-4d6c-adb7-121669b43dce",
+          "title": "Agent KIM",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent KIM",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "f19c5e9b-10cf-4ccd-aa6f-c2df9edb53f5",
+      "title": "Agent KIM — Portfolio Alert V2 Presales Refresher",
+      "description": "Agent KIM imported from Lovable and regrouped as one Update Item. Original topics: BD Training Session 18 June; Portfolio Alert V2 Presales Refresher.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent KIM",
+      "owner": "Fadlim",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-18",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "448b5f9c-1e2e-428c-91ff-c549191cdaad",
+          "title": "Agent KIM",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent KIM",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "17acf6f5-2a94-46cc-b20a-c75a89510eec",
+      "title": "Agent SHIELD — POC Done",
+      "description": "Agent SHIELD imported from Lovable and regrouped as one Update Item. Original topics: POC Done; Collection Signal with Lenderlink.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent SHIELD",
+      "owner": "Min Hou",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "37df8ccf-2823-401a-8701-88a508dd65d3",
+          "title": "Agent SHIELD",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent SHIELD",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "7f6a8ea9-cd40-4109-9a54-815a8f256237",
+      "title": "Agent SHIELD — Collection Signal with Lenderlink",
+      "description": "Agent SHIELD imported from Lovable and regrouped as one Update Item. Original topics: POC Done; Collection Signal with Lenderlink.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent SHIELD",
+      "owner": "Min Hou",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+          "title": "Agent SHIELD",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent SHIELD",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "4e395c8d-af2f-400b-beb7-1f9a326dfbb6",
+      "title": "Telkomsel API Wrapper",
+      "description": "",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "Done",
+      "targetCompletionDate": "2026-08-12",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": true,
+      "archivedReason": "test",
+      "doneDate": "2026-07-07",
+      "doneWeek": "2026-28",
+      "createdBy": "Kintan",
+      "createdAt": "2026-07-02T07:22:23.944Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-07T08:11:10.398Z",
+      "workstreams": [
+        {
+          "id": "ff2ab0b4-289e-4af9-8ff0-4b32e1f99e07",
+          "title": "Telcoscore",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Telcoscore",
+      "blockerRisk": "",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "0f082828-154f-495a-ba73-361791814932",
+      "title": "Enhanced Bureau Alternative Score",
+      "description": "Refine score coverage and launch readiness across priority B2B clients.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "Testing",
+      "targetCompletionDate": "2026-08-15",
+      "relatedLinks": [
+        {
+          "label": "Working doc",
+          "url": "https://example.com/enhanced-score"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "4ded6b05-74be-48c9-9333-d892b4745c1d",
+          "title": "Confirm score validation scope",
+          "done": false
+        },
+        {
+          "id": "11db5745-0113-44a2-b358-4d323d9bb327",
+          "title": "Overall update",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: Enhanced Bureau Alternative Score — Final Pricing",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Arbi",
+      "createdAt": "2026-07-02T07:13:47.426Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "4ded6b05-74be-48c9-9333-d892b4745c1d",
+          "title": "Confirm score validation scope",
+          "done": false
+        },
+        {
+          "id": "11db5745-0113-44a2-b358-4d323d9bb327",
+          "title": "Overall update",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Enhanced Bureau Alternative Score",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "379b8dbc-8308-4214-82ed-96a4e6fd4e05",
+      "title": "Error & Feature Mapping",
+      "description": "E-BAS imported from Lovable and regrouped as one Update Item. Original topics: Error & Feature Mapping.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "5406d045-3f92-41c9-8584-2ffcd3fd7f62",
+          "title": "Error & Feature Mapping",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-06T08:24:09.842Z",
+      "workstreams": [
+        {
+          "id": "01452ab9-ac3c-459b-b446-0dff38e42ffa",
+          "title": "E-BAS",
+          "done": false
+        }
+      ],
+      "productWorkstream": "E-BAS",
+      "blockerRisk": "",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "f677e37e-c5c1-4383-a24c-db99b9d9b93b",
+      "title": "Delayed (OJK Aduit)",
+      "description": "Income Prediction imported from Lovable and regrouped as one Update Item. Original topics: Delayed (OJK Audit).",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Arbi",
+      "status": "Planning",
+      "targetCompletionDate": "2025-07-03",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "7444af72-968f-436d-b570-ed0ba2f172ae",
+          "title": "Delayed (OJK Audit)",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-06T08:24:40.517Z",
+      "workstreams": [
+        {
+          "id": "1f23fd6c-1bae-4051-b960-8c258c68ab75",
+          "title": "Income Prediction",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Income Prediction",
+      "blockerRisk": "",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "29bfcb04-cadf-4512-871b-5565bf481590",
+      "title": "CIMB Polaris",
+      "description": "CIMB Polaris imported from Lovable and regrouped as one Update Item. Original topics: General Support.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "POC & Customer Support",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "801ab522-bf62-4762-ab18-dc405ecea109",
+          "title": "General Support",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: CIMB Polaris — General Support",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "801ab522-bf62-4762-ab18-dc405ecea109",
+          "title": "General Support",
+          "done": false
+        }
+      ],
+      "productWorkstream": "CIMB Polaris",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "9ef33a3c-aa9c-42aa-8cf9-ed1de60ab854",
+      "title": "Cost Finalization",
+      "description": "GTF Full Version Cost Finalization imported from Lovable and regrouped as one Update Item. Original topics: GTF Full Version Cost Finalization.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "POC & Customer Support",
+      "owner": "Andre W.",
+      "status": "Testing",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "821e3873-c4bc-4817-af19-332afcf64c27",
+          "title": "GTF Full Version Cost Finalization",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-06T08:25:42.152Z",
+      "workstreams": [
+        {
+          "id": "faadcd64-4ee7-4475-9f24-60951f276e44",
+          "title": "GTF Full Version",
+          "done": false
+        }
+      ],
+      "productWorkstream": "GTF Full Version",
+      "lifecycleState": "Active",
+      "blockerRisk": ""
+    },
+    {
+      "id": "fc409f28-c6da-433f-877f-93c10d848169",
+      "title": "OJK Audit",
+      "description": "OJK Audit imported from Lovable and regrouped as one Update Item. Original topics: Sample Output & BAST Prep.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Regulator",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "525ed925-1c28-4613-a0b6-bc62e9562685",
+          "title": "Sample Output & BAST Prep",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: OJK Audit — Sample Output & BAST Prep",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "525ed925-1c28-4613-a0b6-bc62e9562685",
+          "title": "Sample Output & BAST Prep",
+          "done": false
+        }
+      ],
+      "productWorkstream": "OJK Audit",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "32422884-3e18-495b-8653-d5b1144e52fb",
+      "title": "UOB Recovery Campaign",
+      "description": "UOB Recovery Campaign imported from Lovable and regrouped as one Update Item. Original topics: UOB Recovery Campaign.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "37d6bd34-8b67-4354-bb65-e368618860e1",
+          "title": "UOB Recovery Campaign",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "37d6bd34-8b67-4354-bb65-e368618860e1",
+          "title": "UOB Recovery Campaign",
+          "done": false
+        }
+      ],
+      "productWorkstream": "UOB Recovery Campaign"
+    },
+    {
+      "id": "8231afa3-ec6d-482b-b519-67432141ec02",
+      "title": "JULO",
+      "description": "JULO imported from Lovable and regrouped as one Update Item. Original topics: Polaris Discussion.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "100ff06f-aad0-4183-a82a-42762dadfb84",
+          "title": "Polaris Discussion",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: JULO — Polaris Discussion",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "100ff06f-aad0-4183-a82a-42762dadfb84",
+          "title": "Polaris Discussion",
+          "done": false
+        }
+      ],
+      "productWorkstream": "JULO",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "0843cac6-a2c0-498b-8ab3-614e3bdb4b95",
+      "title": "BSN",
+      "description": "BSN imported from Lovable and regrouped as one Update Item. Original topics: Custom Report on Server (Proposal).",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Andre W.",
+      "status": "Testing",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "13f47003-4c14-42e8-8215-a1144dfafa48",
+          "title": "Custom Report on Server (Proposal)",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: BSN — Custom Report on Server (Proposal)",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "13f47003-4c14-42e8-8215-a1144dfafa48",
+          "title": "Custom Report on Server (Proposal)",
+          "done": false
+        }
+      ],
+      "productWorkstream": "BSN",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "39b65a6d-5522-48ad-84b9-df33552efee5",
+      "title": "SME Bureau Phase 3",
+      "description": "SME Bureau Phase 3 imported from Lovable and regrouped as one Update Item. Original topics: Target Go-Live 15 July.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "SME 1.0",
+      "owner": "Kintan",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-07-15",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "d716c876-40b2-4332-8b36-e17b9e2809db",
+          "title": "Target Go-Live 15 July",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: SME Bureau Phase 3 — Target Go-Live 15 July",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "d716c876-40b2-4332-8b36-e17b9e2809db",
+          "title": "Target Go-Live 15 July",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SME Bureau Phase 3",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "d794f397-2ec6-40a5-ad55-88f0473bb468",
+      "title": "Sapa UMKM Integration",
+      "description": "Sapa UMKM Integration imported from Lovable and regrouped as one Update Item. Original topics: Content & Video.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "Product Features",
+      "owner": "Kintan",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-25",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "93cad8b2-ad4f-490c-9363-ec0de33bc95c",
+          "title": "Content & Video",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: Sapa UMKM Integration — Content & Video",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "93cad8b2-ad4f-490c-9363-ec0de33bc95c",
+          "title": "Content & Video",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Sapa UMKM Integration",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "d209708e-214a-412a-a1a7-3e8ea95878d9",
+      "title": "Robo Polaris",
+      "description": "Robo Polaris imported from Lovable and regrouped as one Update Item. Original topics: Way of Working Advisory.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "Presales & Discovery",
+      "owner": "Andre W.",
+      "status": "Done",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "b09d2ddd-c861-4f45-8357-e9fc9edfbe95",
+          "title": "Way of Working Advisory",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "2025-06-12",
+      "doneWeek": "2026-27",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreams": [
+        {
+          "id": "b09d2ddd-c861-4f45-8357-e9fc9edfbe95",
+          "title": "Way of Working Advisory",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Robo Polaris"
+    },
+    {
+      "id": "1794611a-8223-4c2a-a862-687775157cb6",
+      "title": "CIC Accreditation",
+      "description": "CIC Accreditation imported from Lovable and regrouped as one Update Item. Original topics: Advance Tier Schema Review.",
+      "productArea": "CBP",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Aaron",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "f577db9d-3e5e-49f4-a1dd-c0e50d6cb185",
+          "title": "Advance Tier Schema Review",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: CIC Accreditation — Advance Tier Schema Review",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "f577db9d-3e5e-49f4-a1dd-c0e50d6cb185",
+          "title": "Advance Tier Schema Review",
+          "done": false
+        }
+      ],
+      "productWorkstream": "CIC Accreditation",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "161f3b52-9232-4178-9102-d42b558a9fb8",
+      "title": "Income / Telco Product Strategy",
+      "description": "Income / Telco Product Strategy imported from Lovable and regrouped as one Update Item. Original topics: 90%.",
+      "productArea": "CBP",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Aaron",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "8ed5a52b-18f7-4cd8-8e7b-22f1f94f785c",
+          "title": "90%",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: Income / Telco Product Strategy — 90%",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "8ed5a52b-18f7-4cd8-8e7b-22f1f94f785c",
+          "title": "90%",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Income / Telco Product Strategy",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "c0029d61-b67f-4c6e-b299-22864acffcb4",
+      "title": "Philippines SME Bureau",
+      "description": "Philippines SME Bureau imported from Lovable and regrouped as one Update Item. Original topics: Gcash Discussion.",
+      "productArea": "CBP",
+      "segment": "SME",
+      "track": "SME Partnership",
+      "owner": "Min Hou",
+      "status": "Planning",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "86d7824a-a570-4e41-ad60-ae58799fb580",
+          "title": "Gcash Discussion",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: Philippines SME Bureau — Gcash Discussion",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "86d7824a-a570-4e41-ad60-ae58799fb580",
+          "title": "Gcash Discussion",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Philippines SME Bureau",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "af9b3980-28b1-4a55-971f-4e4ffd9a11d0",
+      "title": "Agent POLAR — Compliance Clearance Pending",
+      "description": "Agent POLAR imported from Lovable and regrouped as one Update Item. Original topics: Compliance Clearance Pending.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent POLAR",
+      "owner": "Fadlim",
+      "status": "Backlog",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "ee6f1717-9a55-4e26-b4ac-1b4a6fc935a0",
+          "title": "Compliance Clearance Pending",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T07:55:36.126Z",
+      "workstreams": [
+        {
+          "id": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+          "title": "Agent POLAR",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent POLAR",
+      "lifecycleState": "Active",
+      "isQaIssue": false,
+      "blockerRisk": ""
+    },
+    {
+      "id": "21ad560a-f610-480a-a9d1-aec1f636920c",
+      "title": "Agent POLAR — BRD Compliance Review",
+      "description": "Agent POLAR BRD imported from Lovable and regrouped as one Update Item. Original topics: OJK Compliance Review.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent POLAR",
+      "owner": "Fadlim",
+      "status": "Backlog",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "b3caf352-cc2a-4fc5-b98f-febf4e2a7e28",
+          "title": "OJK Compliance Review",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T07:57:06.779Z",
+      "workstreams": [
+        {
+          "id": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+          "title": "Agent POLAR",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent POLAR",
+      "lifecycleState": "Active",
+      "isQaIssue": false,
+      "blockerRisk": ""
+    },
+    {
+      "id": "e298c288-1aa3-4e60-ab29-0c3c9c7cae0f",
+      "title": "Agent NORI — Feature Improvements + Sales Ops Handover",
+      "description": "Agent NORI imported from Lovable and regrouped as one Update Item. Original topics: Feature Improvements + Sales Ops Handover.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent NORI",
+      "owner": "Aaron",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "33ec5a8a-d4b4-431e-a0a3-2214c553ea98",
+          "title": "Feature Improvements + Sales Ops Handover",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+          "title": "Agent NORI",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent NORI",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "56534b31-cd7b-4a95-9d63-106dc36b1c67",
+      "title": "Agent ORLA-HR",
+      "description": "Agent ORLA-HR imported from Lovable and regrouped as one Update Item. Original topics: Bug Fix + Gemini Judge.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent ORLA-HR",
+      "owner": "Aaron",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-06-12",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "8d257136-0290-4e33-8117-b3518b7b15c4",
+          "title": "Bug Fix + Gemini Judge",
+          "done": false
+        }
+      ],
+      "archived": true,
+      "archivedReason": "Superseded by split Week 28 item: Agent ORLA-HR — Bug Fix + Gemini Judge",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Lovable Import",
+      "createdAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "8d257136-0290-4e33-8117-b3518b7b15c4",
+          "title": "Bug Fix + Gemini Judge",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent ORLA-HR",
+      "lifecycleState": "Archived"
+    },
+    {
+      "id": "5e39fa44-1c6b-4f62-a185-f55db1900451",
+      "title": "CIMB Polaris — General Support",
+      "description": "CIMB Polaris Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "POC & Customer Support",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "a2277f7c-3f45-4afc-aa8a-84ebd8fb0bb7",
+          "title": "CIMB Polaris",
+          "done": false
+        }
+      ],
+      "productWorkstream": "CIMB Polaris",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "d4e92d92-411c-4976-b6d9-469dbcc2dbda",
+      "title": "OJK Audit — Sample Output & BAST Prep",
+      "description": "OJK Audit Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Regulator",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "970112bc-371e-4ae3-9bde-a29470d39852",
+          "title": "OJK Audit",
+          "done": false
+        }
+      ],
+      "productWorkstream": "OJK Audit",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "e81bbf1b-d7f4-4447-9f74-b506e92fdae4",
+      "title": "JULO — Polaris Discussion",
+      "description": "JULO Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Andre W.",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "e95a0073-77b0-43f4-88e9-eb629ccdc835",
+          "title": "JULO",
+          "done": false
+        }
+      ],
+      "productWorkstream": "JULO",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "600579bb-3d5c-447d-8505-fd2c338a5676",
+      "title": "BSN — Custom Report on Server (Proposal)",
+      "description": "BSN Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Andre W.",
+      "status": "Testing",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "dce9e6e7-99d9-4d5d-851b-d59546700f83",
+          "title": "BSN",
+          "done": false
+        }
+      ],
+      "productWorkstream": "BSN",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "0895678a-db7e-4000-a1fc-e1e9e21a2348",
+      "title": "[QA] Wali — Log Statistics",
+      "description": "[QA] Wali Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "QA Work Update",
+      "owner": "Jonatan Sihombing",
+      "status": "Done",
+      "targetCompletionDate": "2026-06-18",
+      "relatedLinks": [],
+      "subTasks": [
+        {
+          "id": "a3686527-3b5b-4b5b-9435-e6160e9e0358",
+          "title": "Create Test Case",
+          "done": false
+        },
+        {
+          "id": "c8712244-a4aa-486b-8c7e-8f1a24e79fdc",
+          "title": "UAT Testing Execution",
+          "done": false
+        },
+        {
+          "id": "0029916c-68c5-4d1d-b473-ce24da46b29a",
+          "title": "Production Testing",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "2026-07-08",
+      "doneWeek": "2026-28",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Admin",
+      "lastUpdatedAt": "2026-07-08T08:15:50.480Z",
+      "workstreams": [
+        {
+          "id": "b6683f30-41f4-49e6-8bb2-1dc2e0fc3ea2",
+          "title": "[QA] Wali",
+          "done": false
+        }
+      ],
+      "productWorkstream": "[QA] Wali",
+      "lifecycleState": "Done",
+      "isQaIssue": true,
+      "blockerRisk": ""
+    },
+    {
+      "id": "10fffd94-a120-4e58-a4af-32ac38732f4c",
+      "title": "SME Bureau Phase 3 — Target Go-Live 15 July",
+      "description": "SME Bureau Phase 3 Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "SME 1.0",
+      "owner": "Kintan",
+      "status": "In Progress",
+      "targetCompletionDate": "2025-07-15",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "49e12a05-435b-4e9c-a3f0-2ba30f330e0c",
+          "title": "SME Bureau Phase 3",
+          "done": false
+        }
+      ],
+      "productWorkstream": "SME Bureau Phase 3",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "58815003-4918-4cb2-9bd6-b0dc5a6e362a",
+      "title": "Sapa UMKM Integration — Content & Video",
+      "description": "Sapa UMKM Integration Week 28 screenshot item.",
+      "productArea": "CBI",
+      "segment": "SME",
+      "track": "Product Features",
+      "owner": "Kintan",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "b0b98a90-aaf5-44c0-8ab5-afdb1db28f16",
+          "title": "Sapa UMKM Integration",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Sapa UMKM Integration",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "2d51675e-ca08-4625-b5d6-fedb5359da78",
+      "title": "CIC Accreditation — Advance Tier Schema Review",
+      "description": "CIC Accreditation Week 28 screenshot item.",
+      "productArea": "CBP",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Yao Kun",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "003dd655-cd9d-4da6-9f82-71dc618d0035",
+          "title": "CIC Accreditation",
+          "done": false
+        }
+      ],
+      "productWorkstream": "CIC Accreditation",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "0eb4479d-7163-4d97-a9c9-386a36bb7bc6",
+      "title": "Income / Telco Product Strategy — 90%",
+      "description": "Income / Telco Product Strategy Week 28 screenshot item.",
+      "productArea": "CBP",
+      "segment": "B2B",
+      "track": "Presales & Partnerships",
+      "owner": "Yao Kun",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "b77b408d-9988-45f1-a559-d4db8713de5e",
+          "title": "Income / Telco Product Strategy",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Income / Telco Product Strategy",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "3ad01eb3-8299-4001-846c-ebeb519ebb20",
+      "title": "Philippines SME Bureau — Gcash Discussion",
+      "description": "Philippines SME Bureau Week 28 screenshot item.",
+      "productArea": "CBP",
+      "segment": "SME",
+      "track": "SME Partnership",
+      "owner": "Min Hou",
+      "status": "Planning",
+      "targetCompletionDate": "2026-08-31",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "d5224bee-1f1e-485a-a417-aa38a66d5cd2",
+          "title": "Philippines SME Bureau",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Philippines SME Bureau",
+      "lifecycleState": "Active"
+    },
+    {
+      "id": "10ae8ffa-fc75-4b61-b545-4166a7f5fd90",
+      "title": "Agent ORLA-HR — Bug Fix + Gemini Judge",
+      "description": "Agent ORLA-HR Week 28 screenshot item.",
+      "productArea": "AI Agents",
+      "segment": "AI Agents",
+      "track": "Agent ORLA-HR",
+      "owner": "Aaron",
+      "status": "In Progress",
+      "targetCompletionDate": "",
+      "relatedLinks": [],
+      "subTasks": [],
+      "archived": false,
+      "archivedReason": "",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Week 28 Screenshot Import",
+      "createdAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
+      "workstreams": [
+        {
+          "id": "a6549ba5-93fc-4668-9475-8d0350242c11",
+          "title": "Agent ORLA-HR",
+          "done": false
+        }
+      ],
+      "productWorkstream": "Agent ORLA-HR",
+      "lifecycleState": "Active"
+    }
+  ],
+  "weeklyUpdates": [
+    {
+      "id": "ea443e7a-4528-4311-823f-12363452f29b",
+      "itemId": "f482c7af-c8d7-484d-9d12-ffa172156cf5",
+      "workstreamId": "e5ec68f5-3ce0-4e40-810d-6cdc5ad6968c",
+      "workstreamTitle": "TEST",
+      "reportingWeek": "2026-28",
+      "progress": "",
+      "nextStep": "",
+      "blockerRisk": "test",
+      "status": "Delay",
+      "relatedLinks": [],
+      "submittedBy": "Arbi",
+      "submittedAt": "2026-07-08T09:12:47.502Z",
+      "lastUpdatedBy": "Arbi",
+      "lastUpdatedAt": "2026-07-08T09:12:47.502Z"
+    },
+    {
+      "id": "95a0be9d-66d6-4423-b8f8-2df945ae6b68",
+      "itemId": "4e395c8d-af2f-400b-beb7-1f9a326dfbb6",
+      "workstreamId": "ff2ab0b4-289e-4af9-8ff0-4b32e1f99e07",
+      "workstreamTitle": "Telcoscore",
+      "reportingWeek": "2026-28",
+      "progress": "done",
+      "nextStep": "no",
+      "blockerRisk": "",
+      "status": "Done",
+      "relatedLinks": [],
+      "submittedBy": "Product Lead",
+      "submittedAt": "2026-07-07T06:40:11.741Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-07T06:40:11.741Z"
+    },
+    {
+      "id": "c1221e01-9cb6-4ea9-96ac-70e6c3f6ea52",
+      "itemId": "0d561c63-5c3e-4b66-b037-f2ba96fa30c6",
+      "workstreamId": "fc8f8b65-3337-4519-9c3d-796def4ae846",
+      "workstreamTitle": "Polaris",
+      "reportingWeek": "2026-27",
+      "progress": "test live",
+      "nextStep": "test live",
+      "blockerRisk": "",
+      "status": "Live",
+      "relatedLinks": [],
+      "submittedBy": "Aaron",
+      "submittedAt": "2026-07-03T09:56:45.212Z",
+      "lastUpdatedBy": "Aaron",
+      "lastUpdatedAt": "2026-07-03T09:56:45.212Z"
+    },
+    {
+      "id": "fc245e8a-4492-44e6-a0fb-d43e27ab3d6b",
+      "itemId": "0f082828-154f-495a-ba73-361791814932",
+      "reportingWeek": "2026-27",
+      "progress": "continue",
+      "nextStep": "go",
+      "blockerRisk": "no",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "的、",
+          "url": "的、"
+        }
+      ],
+      "submittedBy": "Product Lead",
+      "submittedAt": "2026-07-02T09:17:28.230Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-02T09:17:28.230Z",
+      "workstreamId": "11db5745-0113-44a2-b358-4d323d9bb327",
+      "workstreamTitle": "Overall update"
+    },
+    {
+      "id": "3b1d2767-f882-4d6b-9e61-3c6f8b453956",
+      "itemId": "4e395c8d-af2f-400b-beb7-1f9a326dfbb6",
+      "reportingWeek": "2026-29",
+      "progress": "done",
+      "nextStep": "no",
+      "blockerRisk": "",
+      "status": "Done",
+      "relatedLinks": [
+        {
+          "label": "l",
+          "url": "l"
+        }
+      ],
+      "submittedBy": "Product Lead",
+      "submittedAt": "2026-07-02T09:03:09.452Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-02T09:03:09.452Z",
+      "workstreamId": "d20ecbe6-1fb8-439f-a244-d41bec4d7e57",
+      "workstreamTitle": "Overall update"
+    },
+    {
+      "id": "582c82e2-7063-4ddf-a6fb-9673781e3bba",
+      "itemId": "4e395c8d-af2f-400b-beb7-1f9a326dfbb6",
+      "reportingWeek": "2026-29",
+      "progress": "no",
+      "nextStep": "ll",
+      "blockerRisk": "",
+      "status": "Development",
+      "relatedLinks": [
+        {
+          "label": "k",
+          "url": "k"
+        }
+      ],
+      "submittedBy": "Martin",
+      "submittedAt": "2026-07-02T08:21:03.105Z",
+      "lastUpdatedBy": "Martin",
+      "lastUpdatedAt": "2026-07-02T08:21:03.105Z",
+      "workstreamId": "d20ecbe6-1fb8-439f-a244-d41bec4d7e57",
+      "workstreamTitle": "Overall update"
+    },
+    {
+      "id": "c0aa20c0-dd09-450b-8096-4010a76bb0c8",
+      "itemId": "0f082828-154f-495a-ba73-361791814932",
+      "reportingWeek": "2026-27",
+      "progress": "Completed the first round of validation with sample client data.",
+      "nextStep": "Review edge cases and prepare launch checklist.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Arbi",
+      "submittedAt": "2026-07-02T07:13:47.426Z",
+      "lastUpdatedBy": "Arbi",
+      "lastUpdatedAt": "2026-07-02T07:13:47.426Z",
+      "workstreamId": "11db5745-0113-44a2-b358-4d323d9bb327",
+      "workstreamTitle": "Overall update"
+    },
+    {
+      "id": "e5643fcb-f73f-45a8-aa71-23f9cf9ab135",
+      "itemId": "379b8dbc-8308-4214-82ed-96a4e6fd4e05",
+      "reportingWeek": "2026-27",
+      "progress": "Error & Feature Mapping: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "4a388f70-1542-4b6c-95ba-683836a1b879",
+      "workstreamTitle": "Error & Feature Mapping"
+    },
+    {
+      "id": "b3f45890-58ad-403a-8cd4-02e6ba8c37f6",
+      "itemId": "f677e37e-c5c1-4383-a24c-db99b9d9b93b",
+      "reportingWeek": "2026-27",
+      "progress": "Delayed (OJK Audit): listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "a32a1026-367e-402e-acac-d05c6e09c7c5",
+      "workstreamTitle": "Delayed (OJK Audit)"
+    },
+    {
+      "id": "dcd29db5-6a8e-4ff0-8c7b-16298c2f4a2f",
+      "itemId": "0d561c63-5c3e-4b66-b037-f2ba96fa30c6",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "fc8f8b65-3337-4519-9c3d-796def4ae846",
+      "workstreamTitle": "Polaris"
+    },
+    {
+      "id": "95d1f72e-ecc9-41cb-880e-55c5f8988f63",
+      "itemId": "122b8cde-69f4-484b-8489-8c7f74091379",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "5a86b422-7969-4210-812f-3ebe8347c759",
+      "workstreamTitle": "Polaris"
+    },
+    {
+      "id": "56bfb084-2fb2-4bdc-90ea-a8722a96e02f",
+      "itemId": "29bfcb04-cadf-4512-871b-5565bf481590",
+      "reportingWeek": "2026-27",
+      "progress": "General Support: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "801ab522-bf62-4762-ab18-dc405ecea109",
+      "workstreamTitle": "General Support"
+    },
+    {
+      "id": "778367dd-fc32-41d2-9e06-910e5d466afb",
+      "itemId": "9ef33a3c-aa9c-42aa-8cf9-ed1de60ab854",
+      "reportingWeek": "2026-27",
+      "progress": "GTF Full Version Cost Finalization: listed as Testing on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "8d580a56-73b8-44f3-a507-17bd83cb0488",
+      "workstreamTitle": "GTF Full Version Cost Finalization"
+    },
+    {
+      "id": "94301db9-4e18-42bf-ab9f-cac1511c275a",
+      "itemId": "fc409f28-c6da-433f-877f-93c10d848169",
+      "reportingWeek": "2026-27",
+      "progress": "Sample Output & BAST Prep: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "525ed925-1c28-4613-a0b6-bc62e9562685",
+      "workstreamTitle": "Sample Output & BAST Prep"
+    },
+    {
+      "id": "5b46d161-9750-4e5c-b952-ad04731eed6a",
+      "itemId": "32422884-3e18-495b-8653-d5b1144e52fb",
+      "reportingWeek": "2026-27",
+      "progress": "UOB Recovery Campaign: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "37d6bd34-8b67-4354-bb65-e368618860e1",
+      "workstreamTitle": "UOB Recovery Campaign"
+    },
+    {
+      "id": "21fb16f1-2e27-436d-9d24-6f2402dccdb9",
+      "itemId": "8231afa3-ec6d-482b-b519-67432141ec02",
+      "reportingWeek": "2026-27",
+      "progress": "Polaris Discussion: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "100ff06f-aad0-4183-a82a-42762dadfb84",
+      "workstreamTitle": "Polaris Discussion"
+    },
+    {
+      "id": "393866f1-c0aa-45f0-a997-4c6f7f023e30",
+      "itemId": "0843cac6-a2c0-498b-8ab3-614e3bdb4b95",
+      "reportingWeek": "2026-27",
+      "progress": "Custom Report on Server (Proposal): listed as Testing on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "13f47003-4c14-42e8-8215-a1144dfafa48",
+      "workstreamTitle": "Custom Report on Server (Proposal)"
+    },
+    {
+      "id": "b73c8ffd-496b-46a6-9e6e-5d2611d99cd1",
+      "itemId": "39b65a6d-5522-48ad-84b9-df33552efee5",
+      "reportingWeek": "2026-27",
+      "progress": "Target Go-Live 15 July: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "d716c876-40b2-4332-8b36-e17b9e2809db",
+      "workstreamTitle": "Target Go-Live 15 July"
+    },
+    {
+      "id": "9d0e63ef-be01-4781-b950-e51c21d63417",
+      "itemId": "28d89491-b66f-46a5-88b2-ac5aa5eb5f2c",
+      "reportingWeek": "2026-27",
+      "progress": "listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "5a440522-975a-4fc9-b1e4-008b8a3f2bda",
+      "workstreamTitle": "Data Partner"
+    },
+    {
+      "id": "bfdbf2bc-fa9c-41b1-b4f9-30bea0060541",
+      "itemId": "79898931-5f71-437d-b82f-d0b418165ad5",
+      "reportingWeek": "2026-27",
+      "progress": "listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "9210409e-2582-4a86-b71a-ea2b06f16649",
+      "workstreamTitle": "Data Partner"
+    },
+    {
+      "id": "e291fbae-d7de-4067-b1de-f8aab384f165",
+      "itemId": "d794f397-2ec6-40a5-ad55-88f0473bb468",
+      "reportingWeek": "2026-27",
+      "progress": "Content & Video: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "93cad8b2-ad4f-490c-9363-ec0de33bc95c",
+      "workstreamTitle": "Content & Video"
+    },
+    {
+      "id": "99c3d3c5-0418-483c-8226-af094ec73066",
+      "itemId": "d209708e-214a-412a-a1a7-3e8ea95878d9",
+      "reportingWeek": "2026-27",
+      "progress": "Way of Working Advisory: listed as Done on the Lovable board.",
+      "nextStep": "Monitor and follow up if needed.",
+      "blockerRisk": "",
+      "status": "Done",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "b09d2ddd-c861-4f45-8357-e9fc9edfbe95",
+      "workstreamTitle": "Way of Working Advisory"
+    },
+    {
+      "id": "17d26aab-0929-4063-a2ea-a1292cef1d5c",
+      "itemId": "761a9163-a51f-4cf8-ad06-3c17df434b8e",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "10c74200-9ae1-48da-b268-77f4022068ca",
+      "workstreamTitle": "SkorKu 3.0 Android"
+    },
+    {
+      "id": "f7bdc325-2a72-4b6b-acb7-abe4c6240cc1",
+      "itemId": "7501da52-fa1e-4c7f-a4fe-7ea377c83afe",
+      "reportingWeek": "2026-27",
+      "progress": "listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "82aeb34d-cd47-4445-8e9b-9660143ff3d5",
+      "workstreamTitle": "SkorKu 3.0 iOS"
+    },
+    {
+      "id": "9a1e5743-03d0-4f32-b449-fa77c20b1800",
+      "itemId": "060af48b-1db1-44df-80dd-6a1d1e2e0b2e",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "b8ff3911-081e-4d5c-8ae0-21d6bb2a2ed4",
+      "workstreamTitle": "SkorKu 3.0 AWSA"
+    },
+    {
+      "id": "2bfba8af-3a6b-41e6-818c-d67e40505e07",
+      "itemId": "b3506d44-0bb6-4523-a78e-771f5899e24a",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "aade9a8c-920a-414f-ac9d-e425726ef2be",
+      "workstreamTitle": "SkorKu 2.0"
+    },
+    {
+      "id": "a4a32794-1036-451c-86fc-4071a7dcb022",
+      "itemId": "1794611a-8223-4c2a-a862-687775157cb6",
+      "reportingWeek": "2026-27",
+      "progress": "Advance Tier Schema Review: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "f577db9d-3e5e-49f4-a1dd-c0e50d6cb185",
+      "workstreamTitle": "Advance Tier Schema Review"
+    },
+    {
+      "id": "d1096656-2f9b-4b5d-8a90-686cdc804e2c",
+      "itemId": "161f3b52-9232-4178-9102-d42b558a9fb8",
+      "reportingWeek": "2026-27",
+      "progress": "90%: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "8ed5a52b-18f7-4cd8-8e7b-22f1f94f785c",
+      "workstreamTitle": "90%"
+    },
+    {
+      "id": "b7aaebe4-b89d-4884-95aa-107237b4d73e",
+      "itemId": "c0029d61-b67f-4c6e-b299-22864acffcb4",
+      "reportingWeek": "2026-27",
+      "progress": "Gcash Discussion: listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "86d7824a-a570-4e41-ad60-ae58799fb580",
+      "workstreamTitle": "Gcash Discussion"
+    },
+    {
+      "id": "9485c6ae-e8c7-4319-89cd-9af3885aea46",
+      "itemId": "88621c08-a4e8-4b1a-8ee5-6ba2d5ad68a2",
+      "reportingWeek": "2026-27",
+      "progress": "listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "d352e649-53e4-4d6c-adb7-121669b43dce",
+      "workstreamTitle": "Agent KIM"
+    },
+    {
+      "id": "79b81d35-eb82-4ad6-bcd7-695a77170f92",
+      "itemId": "f19c5e9b-10cf-4ccd-aa6f-c2df9edb53f5",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "448b5f9c-1e2e-428c-91ff-c549191cdaad",
+      "workstreamTitle": "Agent KIM"
+    },
+    {
+      "id": "3788ccd0-e5be-40a5-bc1e-3928d179c805",
+      "itemId": "17acf6f5-2a94-46cc-b20a-c75a89510eec",
+      "reportingWeek": "2026-27",
+      "progress": "listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "37df8ccf-2823-401a-8701-88a508dd65d3",
+      "workstreamTitle": "Agent SHIELD"
+    },
+    {
+      "id": "54f46731-4e67-4330-a56c-1d2b60391344",
+      "itemId": "7f6a8ea9-cd40-4109-9a54-815a8f256237",
+      "reportingWeek": "2026-27",
+      "progress": "listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+      "workstreamTitle": "Agent SHIELD"
+    },
+    {
+      "id": "acde7001-b9e1-4bed-b316-784acf330cb7",
+      "itemId": "af9b3980-28b1-4a55-971f-4e4ffd9a11d0",
+      "reportingWeek": "2026-27",
+      "progress": "Compliance Clearance Pending: listed as Testing on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+      "workstreamTitle": "Agent POLAR"
+    },
+    {
+      "id": "a0432dcb-b761-4972-bcd5-c49862bfab49",
+      "itemId": "21ad560a-f610-480a-a9d1-aec1f636920c",
+      "reportingWeek": "2026-27",
+      "progress": "OJK Compliance Review: listed as Testing on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+      "workstreamTitle": "Agent POLAR"
+    },
+    {
+      "id": "69afbabc-a653-451d-9afa-6ed1c915e268",
+      "itemId": "e298c288-1aa3-4e60-ab29-0c3c9c7cae0f",
+      "reportingWeek": "2026-27",
+      "progress": "Feature Improvements + Sales Ops Handover: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+      "workstreamTitle": "Agent NORI"
+    },
+    {
+      "id": "c352c2eb-b043-4f02-b105-2153879f2138",
+      "itemId": "56534b31-cd7b-4a95-9d63-106dc36b1c67",
+      "reportingWeek": "2026-27",
+      "progress": "Bug Fix + Gemini Judge: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "8d257136-0290-4e33-8117-b3518b7b15c4",
+      "workstreamTitle": "Bug Fix + Gemini Judge"
+    },
+    {
+      "id": "339d834b-8c50-43c5-b428-8f6f3f14af72",
+      "itemId": "0d561c63-5c3e-4b66-b037-f2ba96fa30c6",
+      "workstreamId": "fc8f8b65-3337-4519-9c3d-796def4ae846",
+      "workstreamTitle": "Polaris",
+      "reportingWeek": "2026-28",
+      "progress": "BAF Access Preparation remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "df9a59dc-0626-4901-bafb-77f5f86890be",
+      "itemId": "5e39fa44-1c6b-4f62-a185-f55db1900451",
+      "reportingWeek": "2026-27",
+      "progress": "General Support: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "a2277f7c-3f45-4afc-aa8a-84ebd8fb0bb7",
+      "workstreamTitle": "CIMB Polaris",
+      "importedFromAggregateItemId": "29bfcb04-cadf-4512-871b-5565bf481590"
+    },
+    {
+      "id": "d0bc980c-3de9-42a9-bbd5-2ffe15efad5c",
+      "itemId": "5e39fa44-1c6b-4f62-a185-f55db1900451",
+      "workstreamId": "a2277f7c-3f45-4afc-aa8a-84ebd8fb0bb7",
+      "workstreamTitle": "CIMB Polaris",
+      "reportingWeek": "2026-28",
+      "progress": "General support remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "3f2ee4a0-873e-4e28-afed-a917eed4288a",
+      "itemId": "9ef33a3c-aa9c-42aa-8cf9-ed1de60ab854",
+      "workstreamId": "8d580a56-73b8-44f3-a507-17bd83cb0488",
+      "workstreamTitle": "GTF Full Version Cost Finalization",
+      "reportingWeek": "2026-28",
+      "progress": "Cost finalization is under review.",
+      "nextStep": "Continue review and follow-up.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "5eb02b49-3ff3-48df-8d1d-563945938d72",
+      "itemId": "122b8cde-69f4-484b-8489-8c7f74091379",
+      "workstreamId": "5a86b422-7969-4210-812f-3ebe8347c759",
+      "workstreamTitle": "Polaris",
+      "reportingWeek": "2026-28",
+      "progress": "Pak Suparman DS Requests remain in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "9c344f00-5475-4211-b45a-40db56cd5c9b",
+      "itemId": "d4e92d92-411c-4976-b6d9-469dbcc2dbda",
+      "reportingWeek": "2026-27",
+      "progress": "Sample Output & BAST Prep: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "970112bc-371e-4ae3-9bde-a29470d39852",
+      "workstreamTitle": "OJK Audit",
+      "importedFromAggregateItemId": "fc409f28-c6da-433f-877f-93c10d848169"
+    },
+    {
+      "id": "868b43ae-e637-474a-8e41-f53d402d8c14",
+      "itemId": "d4e92d92-411c-4976-b6d9-469dbcc2dbda",
+      "workstreamId": "970112bc-371e-4ae3-9bde-a29470d39852",
+      "workstreamTitle": "OJK Audit",
+      "reportingWeek": "2026-28",
+      "progress": "Sample output and BAST preparation remain in progress.",
+      "nextStep": "Continue preparation and follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "14c5f27d-a0a5-4ad5-8ba9-4dd703bf6ea5",
+      "itemId": "e81bbf1b-d7f4-4447-9f74-b506e92fdae4",
+      "reportingWeek": "2026-27",
+      "progress": "Polaris Discussion: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "e95a0073-77b0-43f4-88e9-eb629ccdc835",
+      "workstreamTitle": "JULO",
+      "importedFromAggregateItemId": "8231afa3-ec6d-482b-b519-67432141ec02"
+    },
+    {
+      "id": "68c04841-fb91-4643-af7d-6ef4dbfe7961",
+      "itemId": "e81bbf1b-d7f4-4447-9f74-b506e92fdae4",
+      "workstreamId": "e95a0073-77b0-43f4-88e9-eb629ccdc835",
+      "workstreamTitle": "JULO",
+      "reportingWeek": "2026-28",
+      "progress": "JULO Polaris discussion remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "91e617c9-01c1-467d-9bea-f36215fc059d",
+      "itemId": "600579bb-3d5c-447d-8505-fd2c338a5676",
+      "reportingWeek": "2026-27",
+      "progress": "Custom Report on Server (Proposal): listed as Testing on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "dce9e6e7-99d9-4d5d-851b-d59546700f83",
+      "workstreamTitle": "BSN",
+      "importedFromAggregateItemId": "0843cac6-a2c0-498b-8ab3-614e3bdb4b95"
+    },
+    {
+      "id": "ad762a8d-d84f-44ee-9c34-782109333ef3",
+      "itemId": "600579bb-3d5c-447d-8505-fd2c338a5676",
+      "workstreamId": "dce9e6e7-99d9-4d5d-851b-d59546700f83",
+      "workstreamTitle": "BSN",
+      "reportingWeek": "2026-28",
+      "progress": "Custom report on server proposal is under review.",
+      "nextStep": "Continue review.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "7763e701-646d-45cd-9e08-7e2ad0c6e2a1",
+      "itemId": "0895678a-db7e-4000-a1fc-e1e9e21a2348",
+      "workstreamId": "831b1b6e-8e8c-479a-8b60-fc70159a7f68",
+      "workstreamTitle": "[QA] Wali",
+      "reportingWeek": "2026-28",
+      "progress": "UAT testing for Log Service was performed. Issues with service options display were resolved after discussion with PM and Product Manager, with a requested display change. Multiple services issue found in file download; waiting for production deployment for further testing and validation.",
+      "nextStep": "Monitor production deployment and validate further testing.",
+      "blockerRisk": "",
+      "status": "Done",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "7fbb2477-57c3-45e8-9338-4d156181fda7",
+      "itemId": "10fffd94-a120-4e58-a4af-32ac38732f4c",
+      "reportingWeek": "2026-27",
+      "progress": "Target Go-Live 15 July: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "49e12a05-435b-4e9c-a3f0-2ba30f330e0c",
+      "workstreamTitle": "SME Bureau Phase 3",
+      "importedFromAggregateItemId": "39b65a6d-5522-48ad-84b9-df33552efee5"
+    },
+    {
+      "id": "6588c627-c622-433c-afa4-aacce3a150e2",
+      "itemId": "10fffd94-a120-4e58-a4af-32ac38732f4c",
+      "workstreamId": "49e12a05-435b-4e9c-a3f0-2ba30f330e0c",
+      "workstreamTitle": "SME Bureau Phase 3",
+      "reportingWeek": "2026-28",
+      "progress": "Target Go-Live 15 July remains in progress.",
+      "nextStep": "Continue go-live follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "900efc4f-cf51-4fe4-8851-9c798317fff3",
+      "itemId": "28d89491-b66f-46a5-88b2-ac5aa5eb5f2c",
+      "workstreamId": "5a440522-975a-4fc9-b1e4-008b8a3f2bda",
+      "workstreamTitle": "Data Partner",
+      "reportingWeek": "2026-28",
+      "progress": "Ginee Integration remains in planning.",
+      "nextStep": "Continue partner follow-up.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "079962eb-92dd-4227-bd9e-740de5969983",
+      "itemId": "79898931-5f71-437d-b82f-d0b418165ad5",
+      "workstreamId": "9210409e-2582-4a86-b71a-ea2b06f16649",
+      "workstreamTitle": "Data Partner",
+      "reportingWeek": "2026-28",
+      "progress": "Finpay & ESB remains in planning.",
+      "nextStep": "Continue partner follow-up.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "c17e6d0c-2b5e-4610-bab5-ef83b829546d",
+      "itemId": "58815003-4918-4cb2-9bd6-b0dc5a6e362a",
+      "reportingWeek": "2026-27",
+      "progress": "Content & Video: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "b0b98a90-aaf5-44c0-8ab5-afdb1db28f16",
+      "workstreamTitle": "Sapa UMKM Integration",
+      "importedFromAggregateItemId": "d794f397-2ec6-40a5-ad55-88f0473bb468"
+    },
+    {
+      "id": "34828e42-2240-46b5-b3aa-b14a13c066a2",
+      "itemId": "58815003-4918-4cb2-9bd6-b0dc5a6e362a",
+      "workstreamId": "b0b98a90-aaf5-44c0-8ab5-afdb1db28f16",
+      "workstreamTitle": "Sapa UMKM Integration",
+      "reportingWeek": "2026-28",
+      "progress": "Content and video work remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "1c73ec78-a103-4430-bd80-d155893f7da5",
+      "itemId": "2d51675e-ca08-4625-b5d6-fedb5359da78",
+      "reportingWeek": "2026-27",
+      "progress": "Advance Tier Schema Review: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "003dd655-cd9d-4da6-9f82-71dc618d0035",
+      "workstreamTitle": "CIC Accreditation",
+      "importedFromAggregateItemId": "1794611a-8223-4c2a-a862-687775157cb6"
+    },
+    {
+      "id": "a6766650-fadc-4984-8566-f5bb05c22e63",
+      "itemId": "2d51675e-ca08-4625-b5d6-fedb5359da78",
+      "workstreamId": "003dd655-cd9d-4da6-9f82-71dc618d0035",
+      "workstreamTitle": "CIC Accreditation",
+      "reportingWeek": "2026-28",
+      "progress": "Advance Tier Schema Review remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "0eaa1b6f-5b29-4fe7-aec1-4812e6f9175c",
+      "itemId": "0eb4479d-7163-4d97-a9c9-386a36bb7bc6",
+      "reportingWeek": "2026-27",
+      "progress": "90%: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "b77b408d-9988-45f1-a559-d4db8713de5e",
+      "workstreamTitle": "Income / Telco Product Strategy",
+      "importedFromAggregateItemId": "161f3b52-9232-4178-9102-d42b558a9fb8"
+    },
+    {
+      "id": "35e69bc2-b523-4953-898e-97a0fb1d0af3",
+      "itemId": "0eb4479d-7163-4d97-a9c9-386a36bb7bc6",
+      "workstreamId": "b77b408d-9988-45f1-a559-d4db8713de5e",
+      "workstreamTitle": "Income / Telco Product Strategy",
+      "reportingWeek": "2026-28",
+      "progress": "Income / Telco Product Strategy is at 90% and remains in progress.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "196c975f-3d75-4add-ba8f-7617abefe7af",
+      "itemId": "3ad01eb3-8299-4001-846c-ebeb519ebb20",
+      "reportingWeek": "2026-27",
+      "progress": "Gcash Discussion: listed as Planning on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "d5224bee-1f1e-485a-a417-aa38a66d5cd2",
+      "workstreamTitle": "Philippines SME Bureau",
+      "importedFromAggregateItemId": "c0029d61-b67f-4c6e-b299-22864acffcb4"
+    },
+    {
+      "id": "137fe495-4b89-427d-ac2c-a27729bcff50",
+      "itemId": "3ad01eb3-8299-4001-846c-ebeb519ebb20",
+      "workstreamId": "d5224bee-1f1e-485a-a417-aa38a66d5cd2",
+      "workstreamTitle": "Philippines SME Bureau",
+      "reportingWeek": "2026-28",
+      "progress": "Philippines SME Bureau Gcash Discussion remains in planning. Data is TBC.",
+      "nextStep": "Continue GCash discussion follow-up.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "1f2daaaa-b3b3-46be-ac97-a0bf9ac8bbb7",
+      "itemId": "7f6a8ea9-cd40-4109-9a54-815a8f256237",
+      "workstreamId": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+      "workstreamTitle": "Agent SHIELD",
+      "reportingWeek": "2026-28",
+      "progress": "Collection Signal with Lenderlink remains in planning.",
+      "nextStep": "Continue follow-up.",
+      "blockerRisk": "",
+      "status": "Planning",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "cacc123f-3aa8-4f51-ac57-e2ed089d3e24",
+      "itemId": "af9b3980-28b1-4a55-971f-4e4ffd9a11d0",
+      "workstreamId": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+      "workstreamTitle": "Agent POLAR",
+      "reportingWeek": "2026-28",
+      "progress": "Compliance Clearance Pending is under review/testing.",
+      "nextStep": "Continue compliance clearance follow-up.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "40e94a53-9349-4646-96ba-7d662e5bdafa",
+      "itemId": "21ad560a-f610-480a-a9d1-aec1f636920c",
+      "workstreamId": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+      "workstreamTitle": "Agent POLAR",
+      "reportingWeek": "2026-28",
+      "progress": "OJK Compliance Review remains under review/testing.",
+      "nextStep": "Continue BRD/OJK compliance review follow-up.",
+      "blockerRisk": "",
+      "status": "Testing",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "a0d29a07-ff10-4afd-afff-174a60ae8bc8",
+      "itemId": "e298c288-1aa3-4e60-ab29-0c3c9c7cae0f",
+      "workstreamId": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+      "workstreamTitle": "Agent NORI",
+      "reportingWeek": "2026-28",
+      "progress": "Feature Improvements + Sales Ops Handover remains in progress.",
+      "nextStep": "Continue handover follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    },
+    {
+      "id": "7237bfc4-6e27-4d2e-ae88-9953abcbb9be",
+      "itemId": "10ae8ffa-fc75-4b61-b545-4166a7f5fd90",
+      "reportingWeek": "2026-27",
+      "progress": "Bug Fix + Gemini Judge: listed as In Progress on the Lovable board.",
+      "nextStep": "Continue follow-up in the next product review.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "Lovable source",
+          "url": "lovable-seed"
+        }
+      ],
+      "submittedBy": "Lovable Import",
+      "submittedAt": "2026-07-03T02:18:03.777Z",
+      "lastUpdatedBy": "Lovable Import",
+      "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
+      "workstreamId": "a6549ba5-93fc-4668-9475-8d0350242c11",
+      "workstreamTitle": "Agent ORLA-HR",
+      "importedFromAggregateItemId": "56534b31-cd7b-4a95-9d63-106dc36b1c67"
+    },
+    {
+      "id": "266dc0b0-ffbf-4a5f-91b0-9e0f4201cf76",
+      "itemId": "10ae8ffa-fc75-4b61-b545-4166a7f5fd90",
+      "workstreamId": "a6549ba5-93fc-4668-9475-8d0350242c11",
+      "workstreamTitle": "Agent ORLA-HR",
+      "reportingWeek": "2026-28",
+      "progress": "Bug Fix + Gemini Judge remains in progress.",
+      "nextStep": "Continue bug fix follow-up.",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [],
+      "submittedBy": "Week 28 Screenshot Import",
+      "submittedAt": "2026-07-06T02:30:00.000Z",
+      "lastUpdatedBy": "Week 28 Screenshot Import",
+      "lastUpdatedAt": "2026-07-06T02:30:00.000Z"
+    }
+  ],
+  "announcements": [],
+  "meetings": [
+    {
+      "id": "d115b068-3813-41e6-9170-cfc687f32260",
+      "title": "Test Meeting",
+      "meetingType": "Product Review",
+      "meetingDate": "2026-07-06",
+      "reportingWeek": "2026-28",
+      "owner": "Arbi",
+      "participants": "Test 123",
+      "agenda": "",
+      "notes": "Test 123",
+      "decisions": "",
+      "actionItems": [],
+      "attachments": [],
+      "status": "Open",
+      "createdBy": "Arbi",
+      "createdAt": "2026-07-06T07:47:52.786Z",
+      "lastUpdatedBy": "Arbi",
+      "lastUpdatedAt": "2026-07-06T07:47:52.786Z"
+    }
+  ],
+  "marketingAssets": [],
+  "capacity": {
+    "metricDefinition": "PM Timesheet. Capacity is recorded in PD by quarter. Red values indicate over-capacity or exception items.",
+    "summary": {
+      "totalPd": 822,
+      "activePm": 12,
+      "averagePd": 68.5,
+      "totalQuarters": {
+        "q1": 822,
+        "q2": 0,
+        "q3": 0,
+        "q4": 0
+      },
+      "activeQuarters": {
+        "q1": 11,
+        "q2": 13,
+        "q3": 12,
+        "q4": 12
+      },
+      "averageQuarters": {
+        "q1": 74.7,
+        "q2": 0,
+        "q3": 0,
+        "q4": 0
+      }
+    },
+    "records": [
+      {
+        "id": "c2a66545-3de6-4844-84ea-bedb76b9ea91",
+        "initials": "AS",
+        "pmName": "Abdul Mugni Syafii",
+        "status": "Active",
+        "roleScope": "Q4 · D2C (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 67,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "e63bc14f-aa58-42a1-b19a-e0c84625ba1e",
+        "initials": "AK",
+        "pmName": "Anisya Kharisman",
+        "status": "Active",
+        "roleScope": "Q4 · SME (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 118,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "f4a2d9b9-17e9-4b56-9a5c-8b81d87d35ee",
+        "initials": "AI",
+        "pmName": "Andre Wiryadi Dana (Andre)",
+        "status": "Transfer",
+        "roleScope": "PM · B2B (CBI) · w.e.f. 01 Jul 2026",
+        "activeSince": "01 Jul 2026",
+        "q1": 60,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": "",
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": "",
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "b8117e50-0a85-4caa-88f8-057faeb906cf",
+        "initials": "AK",
+        "pmName": "Arbi Kusuma",
+        "status": "Active",
+        "roleScope": "PM · B2B (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 60,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "b5a1a8f8-0270-4339-8634-4327aaf8c5fa",
+        "initials": "F",
+        "pmName": "Fadlim",
+        "status": "Active",
+        "roleScope": "PM · B2B, AI Agent (AAI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 80,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "1add473d-f902-4fd7-9c0a-adb34226daa2",
+        "initials": "J",
+        "pmName": "Jolly Ann Bilad (Julia)",
+        "status": "Resign",
+        "roleScope": "PM · B2B (CBP) · w.e.f. 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": "",
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": "",
+        "q2Total": 65,
+        "q2Alert": false,
+        "q3": "",
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": "",
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "61816343-f572-4099-accf-6a0356f08e57",
+        "initials": "MV",
+        "pmName": "Martin Jamie Valencia",
+        "status": "Active",
+        "roleScope": "PM · B2B, D2C (CBP) · active since 08 Apr 2026",
+        "activeSince": "08 Apr 2026",
+        "q1": "",
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 60,
+        "q2Alert": false,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "c1fe919b-7f0e-442b-a886-d465606eb98c",
+        "initials": "JS",
+        "pmName": "Jonatan Sihombing",
+        "status": "Active",
+        "roleScope": "QA · B2B (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 69,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "e365c5ab-b1cf-4b7e-bf21-77cfb67090f6",
+        "initials": "KA",
+        "pmName": "Kintan Sekar Adinda",
+        "status": "Active",
+        "roleScope": "PM · SME (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 75,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "396b8f95-ba83-4df7-a9ef-ff159ca30ec6",
+        "initials": "ML",
+        "pmName": "Min Hou Lai",
+        "status": "Active",
+        "roleScope": "PM · B2B, SME, AI Agent (AAI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 65,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "182e1287-1ccc-4ea0-82f4-e1da192c0ed5",
+        "initials": "SA",
+        "pmName": "Stephen Darmawan Anggara",
+        "status": "Active",
+        "roleScope": "PM · D2C (CBI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 65,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "82666969-4fbc-461c-9217-92b9b33f9f18",
+        "initials": "SC",
+        "pmName": "Steven Charlino",
+        "status": "Active",
+        "roleScope": "PM (Design) · active since 30 Mar 2026",
+        "activeSince": "30 Mar 2026",
+        "q1": 0,
+        "q1Total": 2,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "6d7b0b84-8ae4-402f-bdf7-977e12e4a7e5",
+        "initials": "YN",
+        "pmName": "Yao Kun Aaron Neo",
+        "status": "Active",
+        "roleScope": "PM · B2B, AI Agent (AAI) · active since 29 Apr 2026",
+        "activeSince": "29 Apr 2026",
+        "q1": "",
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 45,
+        "q2Alert": false,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      },
+      {
+        "id": "22302a24-0e7a-469d-81a7-ecacccb9edbd",
+        "initials": "YL",
+        "pmName": "Yuxuan Leck",
+        "status": "Active",
+        "roleScope": "LEAD · All (AAI) · active since 01 Jan 2026",
+        "activeSince": "01 Jan 2026",
+        "q1": 163,
+        "q1Total": 64,
+        "q1Alert": false,
+        "q2": 0,
+        "q2Total": 65,
+        "q2Alert": true,
+        "q3": 0,
+        "q3Total": 66,
+        "q3Alert": false,
+        "q4": 0,
+        "q4Total": 66,
+        "q4Alert": false,
+        "notes": ""
+      }
+    ],
+    "lastUpdatedBy": "Product Lead",
+    "lastUpdatedAt": "2026-07-06T09:12:11.966Z"
+  },
+  "customTracks": [],
+  "settingsUpdatedBy": "Admin",
+  "settingsUpdatedAt": "2026-07-06T08:27:41.599Z"
+}
