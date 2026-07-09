@@ -16,7 +16,8 @@ export function getPasscodes() {
   return Object.fromEntries(
     roles.map((role) => {
       const envName = `PIB_PASSCODE_${role.toUpperCase()}`;
-      return [role, process.env[envName] || defaultPasscodes[role]];
+      const legacyAdminName = role === "admin" ? process.env.PIB_ADMIN_PASSCODE : "";
+      return [role, process.env[envName] || legacyAdminName || defaultPasscodes[role]];
     }),
   );
 }
@@ -33,7 +34,9 @@ export function validatePasscodeWithConfig(role, passcode, passcodes = {}) {
   const normalizedRole = normalizeRole(role);
   if (!roles.includes(normalizedRole)) return null;
   const normalized = String(passcode || "").trim();
-  const configured = passcodes[normalizedRole] || passcodes[role] || getPasscodes()[normalizedRole];
+  const envName = `PIB_PASSCODE_${normalizedRole.toUpperCase()}`;
+  const envPasscode = process.env[envName] || (normalizedRole === "admin" ? process.env.PIB_ADMIN_PASSCODE : "");
+  const configured = envPasscode || passcodes[normalizedRole] || passcodes[role] || getPasscodes()[normalizedRole];
   return configured === normalized ? normalizedRole : null;
 }
 

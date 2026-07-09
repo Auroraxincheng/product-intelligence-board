@@ -466,7 +466,7 @@
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
       "workstreams": [
         {
-          "id": "d352e649-53e4-4d6c-adb7-121669b43dce",
+          "id": "a29d89d3-5d30-4c36-9497-700f25736146",
           "title": "Agent KIM",
           "done": false
         }
@@ -501,7 +501,7 @@
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
       "workstreams": [
         {
-          "id": "448b5f9c-1e2e-428c-91ff-c549191cdaad",
+          "id": "ec7eb5f6-c4d2-4f2a-b72d-e4192f19d585",
           "title": "Agent KIM",
           "done": false
         }
@@ -536,7 +536,7 @@
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
       "workstreams": [
         {
-          "id": "37df8ccf-2823-401a-8701-88a508dd65d3",
+          "id": "fa2eaefb-8f8d-44f8-aa43-8d38f0ee2e93",
           "title": "Agent SHIELD",
           "done": false
         }
@@ -571,7 +571,7 @@
       "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
       "workstreams": [
         {
-          "id": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+          "id": "e448225d-0549-4ab1-b33d-a408828edebb",
           "title": "Agent SHIELD",
           "done": false
         }
@@ -1269,7 +1269,7 @@
       "lastUpdatedAt": "2026-07-08T07:55:36.126Z",
       "workstreams": [
         {
-          "id": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+          "id": "a1690fdd-07f6-4d49-ae89-6478e9bacf3c",
           "title": "Agent POLAR",
           "done": false
         }
@@ -1312,7 +1312,7 @@
       "lastUpdatedAt": "2026-07-08T07:57:06.779Z",
       "workstreams": [
         {
-          "id": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+          "id": "7ea0da67-e0b6-4e04-ab57-e4e651b0a680",
           "title": "Agent POLAR",
           "done": false
         }
@@ -1355,7 +1355,7 @@
       "lastUpdatedAt": "2026-07-06T02:30:00.000Z",
       "workstreams": [
         {
-          "id": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+          "id": "48efe4e1-0992-4d6a-855d-ac0ee1ae928c",
           "title": "Agent NORI",
           "done": false
         }
@@ -2361,7 +2361,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "d352e649-53e4-4d6c-adb7-121669b43dce",
+      "workstreamId": "a29d89d3-5d30-4c36-9497-700f25736146",
       "workstreamTitle": "Agent KIM"
     },
     {
@@ -2382,7 +2382,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "448b5f9c-1e2e-428c-91ff-c549191cdaad",
+      "workstreamId": "ec7eb5f6-c4d2-4f2a-b72d-e4192f19d585",
       "workstreamTitle": "Agent KIM"
     },
     {
@@ -2403,7 +2403,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "37df8ccf-2823-401a-8701-88a508dd65d3",
+      "workstreamId": "fa2eaefb-8f8d-44f8-aa43-8d38f0ee2e93",
       "workstreamTitle": "Agent SHIELD"
     },
     {
@@ -2424,7 +2424,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+      "workstreamId": "e448225d-0549-4ab1-b33d-a408828edebb",
       "workstreamTitle": "Agent SHIELD"
     },
     {
@@ -2445,7 +2445,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+      "workstreamId": "a1690fdd-07f6-4d49-ae89-6478e9bacf3c",
       "workstreamTitle": "Agent POLAR"
     },
     {
@@ -2466,7 +2466,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+      "workstreamId": "7ea0da67-e0b6-4e04-ab57-e4e651b0a680",
       "workstreamTitle": "Agent POLAR"
     },
     {
@@ -2487,7 +2487,7 @@
       "submittedAt": "2026-07-03T02:18:03.777Z",
       "lastUpdatedBy": "Lovable Import",
       "lastUpdatedAt": "2026-07-03T02:18:03.777Z",
-      "workstreamId": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+      "workstreamId": "48efe4e1-0992-4d6a-855d-ac0ee1ae928c",
       "workstreamTitle": "Agent NORI"
     },
     {
@@ -2952,7 +2952,7 @@
     {
       "id": "1f2daaaa-b3b3-46be-ac97-a0bf9ac8bbb7",
       "itemId": "7f6a8ea9-cd40-4109-9a54-815a8f256237",
-      "workstreamId": "dcdf447c-9faa-456f-b7da-4505dde408a0",
+      "workstreamId": "e448225d-0549-4ab1-b33d-a408828edebb",
       "workstreamTitle": "Agent SHIELD",
       "reportingWeek": "2026-28",
       "progress": "Collection Signal with Lenderlink remains in planning.",
@@ -2968,7 +2968,7 @@
     {
       "id": "cacc123f-3aa8-4f51-ac57-e2ed089d3e24",
       "itemId": "af9b3980-28b1-4a55-971f-4e4ffd9a11d0",
-      "workstreamId": "ea4adf4e-607b-4775-bc26-fae9998b707c",
+      "workstreamId": "a1690fdd-07f6-4d49-ae89-6478e9bacf3c",
       "workstreamTitle": "Agent POLAR",
       "reportingWeek": "2026-28",
       "progress": "Compliance Clearance Pending is under review/testing.",
@@ -2984,7 +2984,7 @@
     {
       "id": "40e94a53-9349-4646-96ba-7d662e5bdafa",
       "itemId": "21ad560a-f610-480a-a9d1-aec1f636920c",
-      "workstreamId": "9160e72c-9ce2-4014-9548-6bbb2847baec",
+      "workstreamId": "7ea0da67-e0b6-4e04-ab57-e4e651b0a680",
       "workstreamTitle": "Agent POLAR",
       "reportingWeek": "2026-28",
       "progress": "OJK Compliance Review remains under review/testing.",
@@ -3000,7 +3000,7 @@
     {
       "id": "a0d29a07-ff10-4afd-afff-174a60ae8bc8",
       "itemId": "e298c288-1aa3-4e60-ab29-0c3c9c7cae0f",
-      "workstreamId": "36fe73f9-2fcd-455d-b529-5caa9831b726",
+      "workstreamId": "48efe4e1-0992-4d6a-855d-ac0ee1ae928c",
       "workstreamTitle": "Agent NORI",
       "reportingWeek": "2026-28",
       "progress": "Feature Improvements + Sales Ops Handover remains in progress.",

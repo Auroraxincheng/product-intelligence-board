@@ -55,8 +55,19 @@ export function getTracks(productArea, segment) {
   return productAreaConfig[productArea]?.segments?.[segment] || [];
 }
 
+function singaporeDateParts(date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Singapore",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
 export function currentReportingWeek(date = new Date()) {
-  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const parts = singaporeDateParts(date);
+  const target = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day)));
   const day = target.getUTCDay() || 7;
   target.setUTCDate(target.getUTCDate() + 4 - day);
   const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));

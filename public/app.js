@@ -30,6 +30,7 @@ const state = {
 };
 
 const app = document.querySelector("#app");
+const DASHBOARD_CACHE_KEY = "pib_dashboard_cache";
 const fallbackLoginConfig = {
   roles: ["viewer", "pm_team", "product_lead", "admin", "pmm"],
   pmAccounts: [
@@ -61,6 +62,29 @@ function loadModuleData() {
 
 function saveModuleData() {
   localStorage.setItem("pib_modules", JSON.stringify(state.modules));
+}
+
+function loadDashboardCache() {
+  try {
+    return JSON.parse(localStorage.getItem(DASHBOARD_CACHE_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveDashboardCache() {
+  if (!state.config || !state.dashboard) return;
+  localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+    config: state.config,
+    dashboard: state.dashboard,
+    modules: state.modules,
+    session: {
+      role: state.role,
+      selectedPmProfile: state.selectedPmProfile,
+      pmAccountId: state.pmAccountId,
+    },
+    savedAt: new Date().toISOString(),
+  }));
 }
 
 function api(path, options = {}) {
@@ -294,7 +318,14 @@ async function init() {
   renderLoading();
   try {
     if (state.token) {
+      const cached = loadDashboardCache();
+      if (cached?.config && cached?.dashboard) {
+        applyBootstrap(cached);
+        state.view = ["pm_team", "pm_editor"].includes(state.role) && !state.selectedPmProfile ? "login" : "dashboard";
+        render();
+      }
       applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
+      saveDashboardCache();
       state.view = ["pm_team", "pm_editor"].includes(state.role) && !state.selectedPmProfile ? "login" : "dashboard";
     } else {
       state.config = await api("/api/login-config");
@@ -337,6 +368,7 @@ async function loadDashboard(options = {}) {
   ]);
   state.dashboard = dashboard;
   state.modules = modules;
+  saveDashboardCache();
 }
 
 function dashboardParams() {
@@ -641,6 +673,7 @@ function renderLogin() {
       if (state.pmAccountId) localStorage.setItem("pib_pm_account", state.pmAccountId);
       else localStorage.removeItem("pib_pm_account");
       applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
+      saveDashboardCache();
       state.view = "dashboard";
     } catch (error) {
       state.error = error.message;
@@ -680,6 +713,7 @@ function renderProfileSelection() {
       localStorage.setItem("pib_token", state.token);
       localStorage.setItem("pib_pm_profile", state.selectedPmProfile);
       applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
+      saveDashboardCache();
       state.view = "dashboard";
     } catch (error) {
       state.error = error.message;
