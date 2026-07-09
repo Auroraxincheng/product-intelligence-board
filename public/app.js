@@ -1876,7 +1876,7 @@ function renderAnnouncementForm(announcement = null) {
           <label>Visibility <select name="visibility">${["All", "PM Team", "PMM", "Product Lead"].map((visibility) => `<option ${visibility === (announcement?.visibility || "All") ? "selected" : ""}>${escapeHtml(visibility)}</option>`).join("")}</select></label>
           <label class="full">Details <textarea name="body" required>${escapeHtml(announcement?.body || "")}</textarea></label>
           <label class="full">Upload / related links <span class="optional-label">Optional</span><textarea name="relatedLinks" placeholder="Label | https://example.com">${escapeHtml(linkLines(announcement?.relatedLinks || []))}</textarea></label>
-          <label class="checkbox full"><input type="checkbox" name="archived" ${announcement?.archived ? "checked" : ""} /> Archived</label>
+          ${announcement ? `<label class="checkbox full"><input type="checkbox" name="archived" ${announcement.archived ? "checked" : ""} /> Archive this announcement</label>` : ""}
           <div class="full row"><button type="submit">${announcement ? "Save Announcement" : "Add Announcement"}</button></div>
           <div class="error full" id="form-error"></div>
         </form>
@@ -3495,8 +3495,8 @@ document.addEventListener("submit", async (event) => {
   if (event.target.matches("#announcement-form")) {
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.target));
-    payload.archived = event.target.archived?.checked || false;
     const announcementId = state.modal?.announcement?.id;
+    payload.archived = announcementId ? event.target.archived?.checked || false : false;
     await api(announcementId ? `/api/announcements/${announcementId}` : "/api/announcements", {
       method: announcementId ? "PUT" : "POST",
       body: JSON.stringify(payload),
