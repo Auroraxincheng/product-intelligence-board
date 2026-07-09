@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
-import { STATUS_VALUES, currentReportingWeek, productAreas, getSegments, getTracks } from "./config.js";
+import { STATUS_VALUES, currentReportingWeek, pmProfiles, productAreas, getSegments, getTracks } from "./config.js";
 
 const defaultPmAccounts = [
   { accountId: "pm01", pmProfile: "Arbi", active: true },
@@ -24,6 +24,10 @@ const defaultPasscodes = {
 };
 
 const SUPABASE_STATE_ID = process.env.SUPABASE_STATE_ID || "production";
+const SUPABASE_CACHE_TTL_MS = Number(process.env.SUPABASE_CACHE_TTL_MS || 1000);
+let cachedSupabaseState = null;
+let cachedSupabaseStateAt = 0;
+let pendingSupabaseRead = null;
 
 function supabaseConfig() {
   const url = process.env.SUPABASE_URL;
@@ -38,15 +42,28 @@ function supabaseConfig() {
 async function readSupabaseState() {
   const config = supabaseConfig();
   if (!config) return null;
-  const response = await fetch(`${config.url}/rest/v1/app_state?id=eq.${encodeURIComponent(SUPABASE_STATE_ID)}&select=data`, {
-    headers: {
-      apikey: config.key,
-      Authorization: `Bearer ${config.key}`,
-    },
-  });
-  if (!response.ok) throw new Error(`Failed to read Supabase app_state: ${response.status} ${await response.text()}`);
-  const rows = await response.json();
-  return rows[0]?.data || null;
+  if (cachedSupabaseState && Date.now() - cachedSupabaseStateAt < SUPABASE_CACHE_TTL_MS) {
+    return structuredClone(cachedSupabaseState);
+  }
+  if (pendingSupabaseRead) return structuredClone(await pendingSupabaseRead);
+  pendingSupabaseRead = (async () => {
+    const response = await fetch(`${config.url}/rest/v1/app_state?id=eq.${encodeURIComponent(SUPABASE_STATE_ID)}&select=data`, {
+      headers: {
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+      },
+    });
+    if (!response.ok) throw new Error(`Failed to read Supabase app_state: ${response.status} ${await response.text()}`);
+    const rows = await response.json();
+    cachedSupabaseState = rows[0]?.data || null;
+    cachedSupabaseStateAt = Date.now();
+    return cachedSupabaseState;
+  })();
+  try {
+    return structuredClone(await pendingSupabaseRead);
+  } finally {
+    pendingSupabaseRead = null;
+  }
 }
 
 async function writeSupabaseState(data) {
@@ -63,6 +80,8 @@ async function writeSupabaseState(data) {
     body: JSON.stringify({ id: SUPABASE_STATE_ID, data, updated_at: nowIso() }),
   });
   if (!response.ok) throw new Error(`Failed to write Supabase app_state: ${response.status} ${await response.text()}`);
+  cachedSupabaseState = structuredClone(data);
+  cachedSupabaseStateAt = Date.now();
   return true;
 }
 
@@ -413,21 +432,40 @@ export function createStore(filePath) {
       const suffix = agentWithSuffix?.[2]?.trim() || "";
       const entry = data.weeklyUpdates.find((candidate) => candidate.itemId === item.id);
       const entryTopic = String(entry?.progress || "").split(":")[0]?.trim();
-      item.productWorkstream = product;
+      let nextTitle = item.title;
       if (suffix && item.title === `${product} ${suffix}`) {
         const topic = suffix.toLowerCase() === "brd" && /compliance review/i.test(entryTopic)
           ? "BRD Compliance Review"
           : `${suffix}${entryTopic && !entryTopic.toLowerCase().startsWith(suffix.toLowerCase()) ? ` ${entryTopic}` : entryTopic && entryTopic.toLowerCase().startsWith(suffix.toLowerCase()) ? ` ${entryTopic.slice(suffix.length).trim()}` : ""}`.trim();
-        item.title = `${product} — ${topic}`;
+        nextTitle = `${product} — ${topic}`;
       } else if (item.title === product && entryTopic && !entryTopic.startsWith(product)) {
-        item.title = `${product} — ${entryTopic}`;
+        nextTitle = `${product} — ${entryTopic}`;
       }
-      item.workstreams = normalizeWorkstreams(product);
+      const existingWorkstream = (item.workstreams || []).find((workstream) => workstreamKey(workstream.title) === workstreamKey(product));
+      const nextWorkstreams = [{ id: existingWorkstream?.id || crypto.randomUUID(), title: product, done: Boolean(existingWorkstream?.done) }];
+      if (item.productWorkstream !== product) {
+        item.productWorkstream = product;
+        changed = true;
+      }
+      if (item.title !== nextTitle) {
+        item.title = nextTitle;
+        changed = true;
+      }
+      if (JSON.stringify(item.workstreams || []) !== JSON.stringify(nextWorkstreams)) {
+        item.workstreams = nextWorkstreams;
+        changed = true;
+      }
       for (const entry of data.weeklyUpdates.filter((candidate) => candidate.itemId === item.id)) {
-        entry.workstreamTitle = product;
-        entry.workstreamId = item.workstreams[0]?.id || entry.workstreamId;
+        const nextWorkstreamId = item.workstreams[0]?.id || entry.workstreamId;
+        if (entry.workstreamTitle !== product) {
+          entry.workstreamTitle = product;
+          changed = true;
+        }
+        if (entry.workstreamId !== nextWorkstreamId) {
+          entry.workstreamId = nextWorkstreamId;
+          changed = true;
+        }
       }
-      changed = true;
     }
     return changed;
   }
@@ -941,6 +979,33 @@ export function createStore(filePath) {
         meetings: data.meetings,
         marketing: data.marketingAssets,
         capacity: data.capacity,
+      };
+    },
+
+    async getConfigSnapshot() {
+      const data = await readData();
+      const tracksByAreaSegment = {};
+      for (const area of productAreas) {
+        for (const segment of getSegments(area)) {
+          const key = `${area}::${segment}`;
+          const custom = data.customTracks
+            .filter((track) => track.productArea === area && track.segment === segment && !track.archived)
+            .sort((a, b) => Number(a.order || 0) - Number(b.order || 0) || a.name.localeCompare(b.name))
+            .map((track) => track.name);
+          tracksByAreaSegment[key] = [...new Set([...getTracks(area, segment), ...custom])];
+        }
+      }
+      return {
+        pmAccounts: data.pmAccounts,
+        pmProfiles: [...new Set([...pmProfiles, ...data.pmAccounts.map((account) => account.pmProfile).filter(Boolean), ...data.updateItems.map((item) => item.owner).filter(Boolean)])],
+        tracksByAreaSegment,
+        customTracks: data.customTracks,
+        modules: {
+          announcements: data.announcements,
+          meetings: data.meetings,
+          marketing: data.marketingAssets,
+          capacity: data.capacity,
+        },
       };
     },
 

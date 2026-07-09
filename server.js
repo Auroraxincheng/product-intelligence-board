@@ -34,13 +34,33 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-function staticHeaders(contentType) {
+async function buildConfigPayload(req) {
+  const config = await store.getConfigSnapshot();
   return {
-    "Content-Type": contentType,
-    "Cache-Control": "no-store, no-cache, must-revalidate",
-    Pragma: "no-cache",
-    Expires: "0",
+    roles,
+    pmAccounts: config.pmAccounts,
+    pmProfiles: config.pmProfiles,
+    productAreas,
+    segmentsByArea: Object.fromEntries(productAreas.map((area) => [area, getSegments(area)])),
+    tracksByAreaSegment: config.tracksByAreaSegment,
+    customTracks: config.customTracks,
+    statuses: STATUS_VALUES,
+    currentReportingWeek: currentReportingWeek(),
+    modules: config.modules,
+    passcodes: getAuth(req)?.role === "admin" ? Object.fromEntries(roles.map((role) => [role, ""])) : {},
   };
+}
+
+function staticHeaders(contentType, cacheControl = "no-store, no-cache, must-revalidate") {
+  const headers = {
+    "Content-Type": contentType,
+    "Cache-Control": cacheControl,
+  };
+  if (cacheControl.includes("no-store") || cacheControl.includes("no-cache")) {
+    headers.Pragma = "no-cache";
+    headers.Expires = "0";
+  }
+  return headers;
 }
 
 function base64UrlEncode(value) {
@@ -272,20 +292,43 @@ async function handleApi(req, res, pathname) {
     return sendJson(res, 200, { ok: true });
   }
 
-  if (pathname === "/api/config" && req.method === "GET") {
+  if (pathname === "/api/login-config" && req.method === "GET") {
     return sendJson(res, 200, {
       roles,
       pmAccounts: await store.getPmAccounts(),
-      pmProfiles: await getAllowedPmProfiles(),
-      productAreas,
-      segmentsByArea: Object.fromEntries(productAreas.map((area) => [area, getSegments(area)])),
-      tracksByAreaSegment: await store.getTracksByAreaSegment(),
-      customTracks: await store.getCustomTracks(),
-      statuses: STATUS_VALUES,
+      pmProfiles,
       currentReportingWeek: currentReportingWeek(),
-      modules: await store.getModules(),
-      passcodes: getAuth(req)?.role === "admin" ? Object.fromEntries(roles.map((role) => [role, ""])) : {},
     });
+  }
+
+  if (pathname === "/api/config" && req.method === "GET") {
+    return sendJson(res, 200, await buildConfigPayload(req));
+  }
+
+  if (pathname === "/api/bootstrap" && req.method === "GET") {
+    const auth = requireAuth(req, res);
+    if (!auth) return;
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const week = url.searchParams.get("week") || currentReportingWeek();
+    const period = url.searchParams.get("period") || "weekly";
+    const payload = {
+      config: await buildConfigPayload(req),
+      session: sessionPayload(auth),
+    };
+    if (!(normalizeRole(auth.role) === "pm_team" && !auth.selectedPmProfile)) {
+      payload.dashboard = await store.getDashboard(week, {
+        status: url.searchParams.get("status") || "",
+        owner: url.searchParams.get("owner") || "",
+        productArea: url.searchParams.get("productArea") || "",
+        segment: url.searchParams.get("segment") || "",
+        track: url.searchParams.get("track") || "",
+        productWorkstream: url.searchParams.get("productWorkstream") || "",
+        period,
+        includeArchived: url.searchParams.get("includeArchived") === "true",
+        includeFutureDone: url.searchParams.get("includeFutureDone") === "true",
+      }, { role: auth.role });
+    }
+    return sendJson(res, 200, payload);
   }
 
   if (pathname === "/api/passcodes" && req.method === "PUT") {
@@ -540,7 +583,7 @@ async function serveStatic(req, res, pathname) {
     }
     try {
       const data = await readFile(path.join(__dirname, assetName));
-      res.writeHead(200, staticHeaders("image/svg+xml"));
+      res.writeHead(200, staticHeaders("image/svg+xml", "public, max-age=300"));
       res.end(data);
     } catch {
       res.writeHead(404);
@@ -557,7 +600,9 @@ async function serveStatic(req, res, pathname) {
   }
   try {
     const data = await readFile(resolved);
-    res.writeHead(200, staticHeaders(mimeTypes[path.extname(resolved)] || "application/octet-stream"));
+    const ext = path.extname(resolved);
+    const cacheControl = ext === ".html" ? "no-store, no-cache, must-revalidate" : "public, max-age=300";
+    res.writeHead(200, staticHeaders(mimeTypes[ext] || "application/octet-stream", cacheControl));
     res.end(data);
   } catch {
     const data = await readFile(path.join(publicDir, "index.html"));

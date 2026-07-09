@@ -30,6 +30,21 @@ const state = {
 };
 
 const app = document.querySelector("#app");
+const fallbackLoginConfig = {
+  roles: ["viewer", "pm_team", "product_lead", "admin", "pmm"],
+  pmAccounts: [
+    { accountId: "pm01", pmProfile: "Arbi", active: true },
+    { accountId: "pm02", pmProfile: "Kintan", active: true },
+    { accountId: "pm03", pmProfile: "Stephen", active: true },
+    { accountId: "pm04", pmProfile: "Martin", active: true },
+    { accountId: "pm05", pmProfile: "Aaron", active: true },
+    { accountId: "pm06", pmProfile: "Min Hou", active: true },
+    { accountId: "pm07", pmProfile: "Fadlim", active: true },
+    { accountId: "pm08", pmProfile: "Aurora", active: true },
+  ],
+  pmProfiles: [],
+  currentReportingWeek: "",
+};
 
 function loadModuleData() {
   try {
@@ -60,6 +75,7 @@ function api(path, options = {}) {
     const data = await response.json().catch(() => ({}));
     if (response.status === 401) {
       localStorage.clear();
+      state.config = state.config || fallbackLoginConfig;
       Object.assign(state, { token: "", role: "", selectedPmProfile: "", pmAccountId: "", view: "login", dashboard: null, modal: null, detail: null, error: "Session expired. Please log in again." });
       render();
       throw new Error("Session expired. Please log in again.");
@@ -122,6 +138,20 @@ function statusClass(status) {
 
 function needsBlockerDelay(status) {
   return status === "Blocked" || status === "Delay";
+}
+
+function setFormBusy(form, busy, label = "Saving...") {
+  const button = form.querySelector("button[type='submit']");
+  if (!button) return;
+  if (busy) {
+    button.dataset.originalText = button.textContent;
+    button.textContent = label;
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.disabled = false;
+    delete button.dataset.originalText;
+  }
 }
 
 function linkLines(links = []) {
@@ -261,19 +291,15 @@ function availableProductWorkstreams() {
 }
 
 async function init() {
+  renderLoading();
   try {
-    state.config = await api("/api/config");
-    state.modules = state.config.modules || state.modules;
-    state.selectedWeek = state.config.currentReportingWeek;
     if (state.token) {
-      const session = await api("/api/session");
-      state.role = session.role;
-      state.selectedPmProfile = session.selectedPmProfile || "";
-      state.pmAccountId = session.pmAccountId || "";
-      state.config = await api("/api/config");
-      state.modules = state.config.modules || state.modules;
+      applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
       state.view = ["pm_team", "pm_editor"].includes(state.role) && !state.selectedPmProfile ? "login" : "dashboard";
-      if (state.view === "dashboard") await loadDashboard();
+    } else {
+      state.config = await api("/api/login-config");
+      state.modules = state.config.modules || state.modules;
+      state.selectedWeek = state.config.currentReportingWeek;
     }
     render();
   } catch (error) {
@@ -291,17 +317,47 @@ async function init() {
   }
 }
 
-async function loadDashboard() {
-  const params = new URLSearchParams({ week: state.selectedWeek, period: state.period });
-  Object.entries(state.filters).forEach(([key, value]) => {
-    if (value) params.set(key, value);
-  });
+function renderLoading() {
+  app.innerHTML = html`
+    <main class="auth-shell">
+      <section class="auth-panel loading-panel">
+        <h1>Product Intelligence Board</h1>
+        <p class="muted">Loading workspace...</p>
+      </section>
+    </main>
+  `;
+}
+
+async function loadDashboard(options = {}) {
+  const includeModules = options.includeModules !== false;
+  const params = dashboardParams();
   const [dashboard, modules] = await Promise.all([
     api(`/api/dashboard?${params.toString()}`),
-    api("/api/modules"),
+    includeModules ? api("/api/modules") : Promise.resolve(state.modules),
   ]);
   state.dashboard = dashboard;
   state.modules = modules;
+}
+
+function dashboardParams() {
+  const params = new URLSearchParams({ period: state.period });
+  if (state.selectedWeek) params.set("week", state.selectedWeek);
+  Object.entries(state.filters).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+  });
+  return params;
+}
+
+function applyBootstrap(payload) {
+  state.config = payload.config;
+  state.modules = payload.config?.modules || state.modules;
+  state.selectedWeek = payload.dashboard?.reportingWeek || state.selectedWeek || state.config?.currentReportingWeek || "";
+  state.dashboard = payload.dashboard || state.dashboard;
+  if (payload.session) {
+    state.role = payload.session.role;
+    state.selectedPmProfile = payload.session.selectedPmProfile || "";
+    state.pmAccountId = payload.session.pmAccountId || "";
+  }
 }
 
 async function loadModules() {
@@ -536,7 +592,7 @@ function renderLogin() {
     <main class="auth-shell">
       <section class="auth-panel">
         <h1>Product Intelligence Board</h1>
-        <p class="muted">Choose a role, then enter the passcode. For now every role uses 000.</p>
+        <p class="muted">Choose a role, then enter the passcode.</p>
         <form id="login-form" class="grid">
           <label>Role
             <select name="role" id="login-role" required>
@@ -584,10 +640,8 @@ function renderLogin() {
       else localStorage.removeItem("pib_pm_profile");
       if (state.pmAccountId) localStorage.setItem("pib_pm_account", state.pmAccountId);
       else localStorage.removeItem("pib_pm_account");
-      state.config = await api("/api/config");
-      state.modules = state.config.modules || state.modules;
+      applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
       state.view = "dashboard";
-      await loadDashboard();
     } catch (error) {
       state.error = error.message;
     }
@@ -625,8 +679,8 @@ function renderProfileSelection() {
       state.selectedPmProfile = session.selectedPmProfile;
       localStorage.setItem("pib_token", state.token);
       localStorage.setItem("pib_pm_profile", state.selectedPmProfile);
+      applyBootstrap(await api(`/api/bootstrap?${dashboardParams().toString()}`));
       state.view = "dashboard";
-      await loadDashboard();
     } catch (error) {
       state.error = error.message;
     }
@@ -3319,15 +3373,18 @@ document.addEventListener("submit", async (event) => {
     payload.isQaIssue = form.isQaIssue?.checked || false;
     const itemId = state.modal.item?.id;
     try {
+      setFormBusy(form, true);
       await api(itemId ? `/api/items/${itemId}` : "/api/items", {
         method: itemId ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
       state.modal = null;
-      await loadDashboard();
+      await loadDashboard({ includeModules: false });
       render();
     } catch (error) {
       document.querySelector("#form-error").textContent = error.message;
+    } finally {
+      setFormBusy(form, false);
     }
   }
   if (event.target.matches("#weekly-form")) {
@@ -3339,16 +3396,19 @@ document.addEventListener("submit", async (event) => {
       return;
     }
     try {
+      setFormBusy(event.target, true);
       await api(entryId ? `/api/weekly-updates/${entryId}` : "/api/weekly-updates", {
         method: entryId ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
       if (state.detail) state.detail = await api(`/api/items/${payload.itemId}`);
       state.modal = state.detail ? { type: "detail" } : null;
-      await loadDashboard();
+      await loadDashboard({ includeModules: false });
       render();
     } catch (error) {
       document.querySelector("#form-error").textContent = error.message;
+    } finally {
+      setFormBusy(event.target, false);
     }
   }
   if (event.target.matches("#pm-accounts-form")) {
