@@ -423,8 +423,12 @@ async function handleApi(req, res, pathname) {
   }
 
   if (itemMatch && req.method === "DELETE") {
-    const auth = requireAdmin(req, res);
+    const auth = requireEditor(req, res);
     if (!auth) return;
+    const existing = await store.getUpdateItemDetail(itemMatch[1]);
+    if (!existing) return sendJson(res, 404, { error: "Update item not found." });
+    const canDelete = canManageEverything(auth.role) || (["pm_team", "pm_editor"].includes(normalizeRole(auth.role)) && existing.owner === auth.selectedPmProfile);
+    if (!canDelete) return sendJson(res, 403, { error: "You can only delete update items owned by your PM profile." });
     const deleted = await store.deleteUpdateItem(itemMatch[1]);
     if (!deleted) return sendJson(res, 404, { error: "Update item not found." });
     return sendJson(res, 200, { ok: true });

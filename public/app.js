@@ -121,6 +121,13 @@ function canAdmin() {
   return state.role === "admin";
 }
 
+function canDeleteItem(item) {
+  if (!item) return false;
+  if (canAdmin()) return true;
+  if (["pm_team", "pm_editor"].includes(state.role)) return item.owner === state.selectedPmProfile;
+  return false;
+}
+
 function canManageSavedModules() {
   return ["product_lead", "admin"].includes(state.role);
 }
@@ -3177,7 +3184,10 @@ function renderItemForm(item) {
           <label class="full">Sub-tasks <span class="optional-label">Optional</span><textarea name="subTasks" placeholder="One sub-task per line">${escapeHtml(taskLines(item?.subTasks || []))}</textarea></label>
           ${item?.subTasks?.length ? `<div class="full subtask-form-panel"><span class="section-kicker">Current sub-task status</span>${renderSubTaskChecklist(item.subTasks || [])}</div>` : ""}
           <input type="hidden" name="allowNewTrack" value="" />
-          <div class="full row"><button type="submit">${isEdit ? "Save Changes" : "Create Item"}</button></div>
+          <div class="full row">
+            <button type="submit">${isEdit ? "Save Changes" : "Create Item"}</button>
+            ${isEdit && canDeleteItem(item) ? `<button type="button" class="danger" data-delete-item-form="${escapeHtml(item.id)}">Delete Item</button>` : ""}
+          </div>
           <div class="error full" id="form-error"></div>
         </form>
       </section>
@@ -3365,6 +3375,18 @@ document.addEventListener("click", async (event) => {
     if (!window.confirm("Delete this Update Item and all of its weekly timeline entries?")) return;
     try {
       await api(`/api/items/${state.detail.id}`, { method: "DELETE" });
+      state.modal = null;
+      state.detail = null;
+      await loadDashboard();
+      render();
+    } catch (error) {
+      document.querySelector("#form-error").textContent = error.message;
+    }
+  }
+  if (event.target.matches("[data-delete-item-form]")) {
+    if (!window.confirm("Delete this Update Item and all of its weekly timeline entries?")) return;
+    try {
+      await api(`/api/items/${event.target.dataset.deleteItemForm}`, { method: "DELETE" });
       state.modal = null;
       state.detail = null;
       await loadDashboard();
