@@ -1605,13 +1605,14 @@ function renderMiniTimelineEntry(entry) {
 function renderBoardCard(item, compact = false) {
   const latest = item.latestWeeklyUpdate;
   const display = itemDisplayParts(item);
+  const itemTitle = display.detail || item.title || display.product;
   return html`
     <article class="board-card ${segmentClass(item.segment)} ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
       <div class="board-card-head">
         <div>
           <div class="product-workstream-box">${escapeHtml(display.product)}</div>
           ${item.isQaIssue ? `<span class="qa-issue-label">QA Issue</span>` : ""}
-          ${display.detail ? `<div class="board-card-title-row has-detail"><h3 class="board-card-subtitle">${escapeHtml(display.detail)}</h3><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>` : `<div class="board-card-title-row"><span></span><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>`}
+          <div class="board-card-title-row has-detail"><h3 class="board-card-subtitle">${escapeHtml(itemTitle)}</h3><span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></div>
         </div>
       </div>
       ${renderLatestUpdateBlock(item, compact)}

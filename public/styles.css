@@ -1237,13 +1237,17 @@ a:focus-visible {
 }
 
 .board-card .board-card-subtitle {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: var(--ink-strong);
+  display: -webkit-box;
   flex: 1 1 auto;
   font-size: 13.5px;
   font-weight: 900;
   line-height: 1.25;
   margin: 0;
   min-width: 0;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 
