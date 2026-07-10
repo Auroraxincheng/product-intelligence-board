@@ -677,6 +677,17 @@ a:focus-visible {
   padding: 10px;
 }
 
+.item-row-card[data-open-detail],
+.product-timeline-item[data-open-detail] {
+  cursor: pointer;
+}
+
+.item-row-card[data-open-detail]:focus-visible,
+.product-timeline-item[data-open-detail]:focus-visible {
+  outline: 3px solid rgba(20, 127, 251, 0.35);
+  outline-offset: 2px;
+}
+
 .product-timeline-item.status-blocked,
 .product-timeline-item.status-delay {
   border-color: var(--danger-line);

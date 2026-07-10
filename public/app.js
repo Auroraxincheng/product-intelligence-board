@@ -253,6 +253,10 @@ function workstreamLabel(value) {
   return String(value || "").trim() === "General" ? DEFAULT_WORKSTREAM_TITLE : String(value || "").trim();
 }
 
+function workstreamKey(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 function isPlaceholderWorkstream(value) {
   return ["no", "none", "n/a", "na", "-", "无", "没有"].includes(String(value || "").trim().toLowerCase());
 }
@@ -1273,7 +1277,7 @@ function renderBoardViewControls() {
     <section class="board-view-controls">
       <div>
         <span class="section-kicker">View By</span>
-        <strong>${state.boardView === "item" ? "Update Items" : "All Updates"}</strong>
+        <strong>${state.boardView === "item" ? "Products / Workstreams" : "All Updates"}</strong>
       </div>
       <div class="view-toggle">
         <button class="${state.boardView === "product" ? "active" : ""}" data-board-view="product">All</button>
@@ -1428,60 +1432,73 @@ function renderTrackGroup(track, items, compact) {
 
 function renderItemView(items) {
   const groups = itemViewGroups(items);
+  const productCount = groups.length;
   return html`
     <section class="item-view">
       <header class="item-view-head">
         <div>
-          <span class="section-kicker">Update Items</span>
-          <strong>${items.length} matching item${items.length === 1 ? "" : "s"}</strong>
+          <span class="section-kicker">Products / Workstreams</span>
+          <strong>${productCount} product/workstream${productCount === 1 ? "" : "s"} · ${items.length} update item${items.length === 1 ? "" : "s"}</strong>
         </div>
       </header>
       <div class="item-group-list">
-        ${items.length ? groups.map(renderItemGroup).join("") : `<div class="empty">No matching update items.</div>`}
+        ${items.length ? groups.map(renderProductWorkstreamGroup).join("") : `<div class="empty">No matching update items.</div>`}
       </div>
     </section>
   `;
 }
 
 function itemViewGroups(items) {
-  if (!state.filters.productArea) {
-    return state.config.productAreas
-      .map((area) => ({ label: areaTitle(area), badge: area === "AI Agents" ? "AI" : area, items: items.filter((item) => item.productArea === area) }))
-      .filter((group) => group.items.length);
+  const groupMap = new Map();
+  for (const item of items) {
+    const productWorkstream = item.productWorkstream || deriveProductWorkstream(item) || "Unassigned Product / Workstream";
+    const key = workstreamKey(productWorkstream);
+    const group = groupMap.get(key) || {
+      label: productWorkstream,
+      badge: productWorkstream.split(/\s+/).map((word) => word[0]).join("").slice(0, 3).toUpperCase(),
+      items: [],
+    };
+    group.items.push(item);
+    groupMap.set(key, group);
   }
-  if (!state.filters.segment) {
-    return (state.config.segmentsByArea[state.filters.productArea] || [])
-      .map((segment) => ({ label: segment, badge: segmentBadge(segment), items: items.filter((item) => item.segment === segment) }))
-      .filter((group) => group.items.length);
-  }
-  return [{ label: "Matching Update Items", badge: "All", items }];
+  return [...groupMap.values()]
+    .map((group) => ({
+      ...group,
+      items: group.items.sort((a, b) => a.segment.localeCompare(b.segment) || a.track.localeCompare(b.track) || itemDisplayParts(a).detail.localeCompare(itemDisplayParts(b).detail)),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
 
-function renderItemGroup(group) {
+function renderProductWorkstreamGroup(group) {
   return html`
     <section class="item-group-card">
       <header class="item-group-head">
         <div><span>${escapeHtml(group.badge)}</span><strong>${escapeHtml(group.label)}</strong></div>
-        <small>${group.items.length} item${group.items.length === 1 ? "" : "s"}</small>
+        <small>${group.items.length} update item${group.items.length === 1 ? "" : "s"}</small>
       </header>
       <div class="item-list">
-        ${group.items.map(renderItemRow).join("")}
+        ${group.items.map((item) => renderItemRow(item, { groupedByProductWorkstream: true })).join("")}
       </div>
     </section>
   `;
 }
 
-function renderItemRow(item) {
+function renderItemRow(item, options = {}) {
   const latest = item.latestWeeklyUpdate;
   const display = itemDisplayParts(item);
+  const title = options.groupedByProductWorkstream ? display.detail || item.title : display.product;
+  const subtitle = options.groupedByProductWorkstream ? "" : display.detail;
+  const path = options.groupedByProductWorkstream
+    ? `${item.segment} · ${item.track}`
+    : `${item.productArea} · ${item.segment} · ${item.track}`;
   return html`
-    <article class="item-row-card ${segmentClass(item.segment)} ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
+    <article class="item-row-card ${segmentClass(item.segment)} ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}" data-open-detail="${item.id}" tabindex="0" role="button" aria-label="Open timeline for ${escapeHtml(title)}">
       <div class="item-row-main">
         <div>
-          <h3>${escapeHtml(display.product)}</h3>
+          <h3>${escapeHtml(title)}</h3>
           ${item.isQaIssue ? `<span class="qa-issue-label">QA Issue</span>` : ""}
-          ${display.detail ? `<div class="board-card-subtitle">${escapeHtml(display.detail)}</div>` : ""}
-          <div class="item-row-path">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</div>
+          ${subtitle ? `<div class="board-card-subtitle">${escapeHtml(subtitle)}</div>` : ""}
+          <div class="item-row-path">${escapeHtml(path)}</div>
         </div>
         <span class="badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span>
       </div>
@@ -1533,7 +1550,7 @@ function renderProductTimelineItem(item) {
   const entries = [...(item.timelineEntries || item.weeklyUpdatesThisPeriod || [])]
     .sort((a, b) => String(b.reportingWeek || "").localeCompare(String(a.reportingWeek || "")) || String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
   return html`
-    <article class="product-timeline-item ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}">
+    <article class="product-timeline-item ${statusClass(item.status)} ${item.isQaIssue ? "qa-issue-card" : ""}" data-open-detail="${item.id}" tabindex="0" role="button" aria-label="Open timeline for ${escapeHtml(display.detail || item.title)}">
       <header>
         <div>
           <span class="item-row-path">${escapeHtml(item.productArea)} · ${escapeHtml(item.segment)} · ${escapeHtml(item.track)}</span>
@@ -1809,9 +1826,18 @@ function bindDashboardEvents() {
   });
   document.querySelectorAll("[data-detail]").forEach((button) => {
     button.addEventListener("click", async () => {
-      state.detail = await api(`/api/items/${button.dataset.detail}`);
-      state.modal = { type: "detail" };
-      render();
+      await openItemDetail(button.dataset.detail);
+    });
+  });
+  document.querySelectorAll("[data-open-detail]").forEach((card) => {
+    card.addEventListener("click", async (event) => {
+      if (event.target.closest("button, a, input, select, textarea")) return;
+      await openItemDetail(card.dataset.openDetail);
+    });
+    card.addEventListener("keydown", async (event) => {
+      if (!["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      await openItemDetail(card.dataset.openDetail);
     });
   });
   document.querySelectorAll("[data-weekly]").forEach((button) => {
@@ -1821,6 +1847,13 @@ function bindDashboardEvents() {
       loadPreviousReference();
     });
   });
+}
+
+async function openItemDetail(itemId) {
+  if (!itemId) return;
+  state.detail = await api(`/api/items/${itemId}`);
+  state.modal = { type: "detail" };
+  render();
 }
 
 async function updateFilters(event) {

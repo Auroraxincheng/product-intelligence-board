@@ -15,6 +15,8 @@ Run this checklist after deploying to Vercel and after any restore.
 
 ## Login And Roles
 
+Login is a release blocker. If any login path fails, do not deploy.
+
 Test each role:
 
 - Viewer: valid passcode works, invalid passcode rejected.
@@ -28,6 +30,9 @@ Confirm:
 - Correct role is assigned.
 - PM Team account maps to the configured PM Profile.
 - Passcodes are not visible in frontend code.
+- No login screen JavaScript error appears before or after submit.
+- Successful login does not hang on loading.
+- Existing production passcodes continue to work unless the change explicitly updates them.
 - Viewer cannot write through UI.
 - Viewer cannot write through direct API request.
 - PM Team cannot archive through direct API request.

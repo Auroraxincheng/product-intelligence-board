@@ -115,6 +115,8 @@ Recommended:
 - `main` = production
 - feature branches = Vercel preview deployments
 - Test in preview before promoting to production
+- Vercel Production should use `SUPABASE_STATE_ID=production`.
+- Vercel Preview should use `SUPABASE_STATE_ID=staging`.
 
 Minimal safe approach for this launch:
 

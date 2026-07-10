@@ -17,8 +17,11 @@ The application stores the full Product Intelligence Board state in `app_state.d
 - Supabase integration: supported through the Supabase REST API in `src/store.js`.
 - Required runtime variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STATE_ID`.
 - Current production table: `app_state`.
+- Recommended state rows: `production` for live data, `staging` for local/preview testing.
 - Current local fallback data: `data/store.json`.
 - Upload seed script: `scripts/upload-store-to-supabase.mjs`.
+- Pull state script: `scripts/pull-supabase-state.mjs`.
+- Promote state script: `scripts/copy-supabase-state.mjs`.
 - Full normalized business tables such as `update_items`, `weekly_update_entries`, `pm_profiles`, `track_categories`, `announcements`, `meetings`, and `pm_capacity` are not currently implemented as separate Supabase tables.
 - Production data is separate from local data only after `data/store.json` is uploaded into Supabase and Vercel is configured with Supabase environment variables.
 
