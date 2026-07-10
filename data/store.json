@@ -48,17 +48,65 @@
       "active": true
     },
     {
-      "accountId": "pm09",
-      "pmProfile": "xixixi",
+      "accountId": "qa01",
+      "pmProfile": "Jonatan",
       "active": true
     },
     {
-      "accountId": "pm10",
-      "pmProfile": "lalala",
+      "accountId": "qa02",
+      "pmProfile": "Anisya",
+      "active": true
+    },
+    {
+      "accountId": "qa03",
+      "pmProfile": "Abdul",
       "active": true
     }
   ],
   "updateItems": [
+    {
+      "id": "50ca1105-0acb-442f-a807-23b6f9f5bc6e",
+      "title": "TEST",
+      "description": "",
+      "productWorkstream": "TEST(QA)",
+      "productArea": "CBI",
+      "segment": "B2B",
+      "track": "Product",
+      "owner": "Jonatan",
+      "status": "In Progress",
+      "isQaIssue": true,
+      "blockerRisk": "",
+      "targetCompletionDate": "2026-07-10",
+      "relatedLinks": [],
+      "workstreams": [
+        {
+          "id": "fef240a3-d36c-4ea6-aa7a-c77b4cd69bee",
+          "title": "TEST(QA)",
+          "done": false
+        }
+      ],
+      "subTasks": [
+        {
+          "id": "b6d4f4bb-456a-431d-9635-2b7f15ab9f7c",
+          "title": "test",
+          "done": true
+        },
+        {
+          "id": "5850f6e1-78e5-4f19-bab8-ac4d9f5551bd",
+          "title": "test2",
+          "done": false
+        }
+      ],
+      "archived": false,
+      "archivedReason": "",
+      "lifecycleState": "Active",
+      "doneDate": "",
+      "doneWeek": "",
+      "createdBy": "Product Lead",
+      "createdAt": "2026-07-10T09:27:49.872Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-10T09:34:09.941Z"
+    },
     {
       "id": "f482c7af-c8d7-484d-9d12-ffa172156cf5",
       "title": "TEST",
@@ -1754,6 +1802,35 @@
     }
   ],
   "weeklyUpdates": [
+    {
+      "id": "e6d8dad6-0603-4679-a508-ad85b0e5181b",
+      "itemId": "50ca1105-0acb-442f-a807-23b6f9f5bc6e",
+      "workstreamId": "41ce52bb-b471-4691-8031-6f8e926fd3cc",
+      "workstreamTitle": "TEST(QA)",
+      "reportingWeek": "2026-28",
+      "progress": "",
+      "nextStep": "",
+      "blockerRisk": "",
+      "status": "In Progress",
+      "relatedLinks": [
+        {
+          "label": "test1",
+          "url": "test1"
+        },
+        {
+          "label": "test2",
+          "url": "test2"
+        },
+        {
+          "label": "test3",
+          "url": "test3"
+        }
+      ],
+      "submittedBy": "Product Lead",
+      "submittedAt": "2026-07-10T09:28:16.369Z",
+      "lastUpdatedBy": "Product Lead",
+      "lastUpdatedAt": "2026-07-10T09:28:16.369Z"
+    },
     {
       "id": "ea443e7a-4528-4311-823f-12363452f29b",
       "itemId": "f482c7af-c8d7-484d-9d12-ffa172156cf5",

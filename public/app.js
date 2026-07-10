@@ -186,6 +186,14 @@ function taskLines(tasks = []) {
   return tasks.map((task) => task.title || task).join("\n");
 }
 
+function subTaskStatePayload(form) {
+  return [...form.querySelectorAll("[data-subtask-check]")].map((input) => ({
+    id: input.dataset.subtaskId || "",
+    title: input.dataset.subtaskTitle || "",
+    done: input.checked,
+  }));
+}
+
 const DEFAULT_WORKSTREAM_TITLE = "Overall update";
 
 function deriveProductWorkstream(itemOrTitle) {
@@ -1600,7 +1608,9 @@ function renderBoardCard(item, compact = false) {
         </div>
       </div>
       ${renderLatestUpdateBlock(item, compact)}
+      ${renderBoardSubTaskList(item.subTasks || [])}
       <div class="board-card-meta">
+        <span class="subtask-pill">${escapeHtml(subTaskSummary(item.subTasks || []))}</span>
         <span>${escapeHtml(formatCardDate(item, latest))}</span>
         <span class="owner-chip"><span>${escapeHtml(ownerInitials(item.owner))}</span>${escapeHtml(item.owner)}</span>
       </div>
@@ -1642,6 +1652,35 @@ function subTaskSummary(subTasks = []) {
   if (!total) return "No sub-tasks";
   const done = subTasks.filter((task) => task.done).length;
   return `${done}/${total} done`;
+}
+
+function renderSubTaskChecklist(subTasks = [], options = {}) {
+  if (!subTasks.length) return `<div class="empty-track compact-empty">No sub-tasks yet.</div>`;
+  const disabled = options.disabled ? "disabled" : "";
+  return html`
+    <div class="subtask-checklist ${options.compact ? "compact" : ""}">
+      ${subTasks.map((task) => html`
+        <label class="subtask-check ${task.done ? "is-done" : ""}">
+          <input type="checkbox" data-subtask-check data-subtask-id="${escapeHtml(task.id || "")}" data-subtask-title="${escapeHtml(task.title || task)}" ${task.done ? "checked" : ""} ${disabled} />
+          <span>${escapeHtml(task.title || task)}</span>
+        </label>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderBoardSubTaskList(subTasks = []) {
+  if (!subTasks.length) return "";
+  return html`
+    <div class="board-subtask-list" aria-label="Sub-tasks">
+      ${subTasks.map((task) => html`
+        <div class="board-subtask ${task.done ? "is-done" : ""}">
+          <span class="board-subtask-box">${task.done ? "✓" : ""}</span>
+          <span>${escapeHtml(task.title || task)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function renderLatestUpdateText(latest) {
@@ -1715,6 +1754,10 @@ function renderWeeklyItemInfo(item) {
         <div><span>Sub-task summary</span><strong>${escapeHtml(subTaskSummary(item.subTasks || []))}</strong></div>
         <div><span>Last updated by</span><strong>${escapeHtml(item.lastUpdatedBy || "-")}</strong></div>
         <div><span>Last updated at</span><strong>${escapeHtml(item.lastUpdatedAt ? formatDateTime(item.lastUpdatedAt) : "-")}</strong></div>
+      </div>
+      <div class="weekly-subtask-panel">
+        <span class="section-kicker">Sub-tasks</span>
+        ${renderSubTaskChecklist(item.subTasks || [], { compact: true })}
       </div>
     </section>
   `;
@@ -3046,34 +3089,45 @@ function renderPmAccountsForm() {
     <form id="pm-accounts-form" class="grid">
       <div>
         <h2>PM Account Mapping</h2>
-        <p class="muted">PM Team logs in with account id plus passcode 000. Product Lead can freely name each account and add more accounts after pm08.</p>
+        <p class="muted">PM Team logs in with account id plus passcode. Product Lead can add PM accounts such as pm01 and QA accounts such as qa01.</p>
       </div>
       <div class="account-map">
         ${state.config.pmAccounts.map((account) => renderPmAccountRow(account)).join("")}
       </div>
-      <div class="row"><button type="button" class="secondary" id="add-pm-account">Add PM Account</button><button type="submit">Save Mapping</button></div>
+      <div class="row"><button type="button" class="secondary" id="add-pm-account">Add PM Account</button><button type="button" class="secondary" id="add-qa-account">Add QA Account</button><button type="submit">Save Mapping</button></div>
       <div class="error" id="form-error"></div>
     </form>
   `;
 }
 
-function nextPmAccountId() {
+function nextAccountId(prefix = "pm") {
   const numbers = state.config.pmAccounts
-    .map((account) => String(account.accountId || "").match(/^pm(\d+)$/i)?.[1])
+    .map((account) => String(account.accountId || "").match(new RegExp(`^${prefix}(\\d+)$`, "i"))?.[1])
     .filter(Boolean)
     .map(Number);
   const next = Math.max(0, ...numbers) + 1;
-  return `pm${String(next).padStart(2, "0")}`;
+  return `${prefix}${String(next).padStart(2, "0")}`;
 }
 
 function renderPmAccountRow(account) {
   return html`
     <div class="account-row" data-account-row="${escapeHtml(account.accountId)}">
-      <label>Account ID <input name="accountId" value="${escapeHtml(account.accountId)}" pattern="pm\\d+" required /></label>
+      <label>Account ID <input name="accountId" value="${escapeHtml(account.accountId)}" pattern="(pm|qa)\\d+" required /></label>
       <label>PM Name <input name="pmProfile" value="${escapeHtml(account.pmProfile)}" required /></label>
       <label class="checkline"><input type="checkbox" name="active" ${account.active ? "checked" : ""} /> Active</label>
+      <button type="button" class="danger account-delete" data-remove-account>Delete</button>
     </div>
   `;
+}
+
+function readPmAccountRowsFromDom() {
+  const form = document.querySelector("#pm-accounts-form");
+  if (!form) return state.config.pmAccounts || [];
+  return [...form.querySelectorAll("[data-account-row]")].map((row) => ({
+    accountId: row.querySelector("[name='accountId']")?.value || "",
+    pmProfile: row.querySelector("[name='pmProfile']")?.value || "",
+    active: row.querySelector("[name='active']")?.checked || false,
+  }));
 }
 
 function renderItemForm(item) {
@@ -3121,6 +3175,7 @@ function renderItemForm(item) {
           <label class="full blocker-field" id="item-blocker-field" ${needsBlockerDelay(item?.status) ? "" : "hidden"}>Blocker / Delay <textarea name="blockerRisk" placeholder="Required when status is Blocked or Delay">${escapeHtml(item?.blockerRisk || "")}</textarea></label>
           <label class="full">Related Links <span class="optional-label">Optional</span><textarea name="relatedLinks" placeholder="Label | https://example.com">${escapeHtml(linkLines(item?.relatedLinks || []))}</textarea></label>
           <label class="full">Sub-tasks <span class="optional-label">Optional</span><textarea name="subTasks" placeholder="One sub-task per line">${escapeHtml(taskLines(item?.subTasks || []))}</textarea></label>
+          ${item?.subTasks?.length ? `<div class="full subtask-form-panel"><span class="section-kicker">Current sub-task status</span>${renderSubTaskChecklist(item.subTasks || [])}</div>` : ""}
           <input type="hidden" name="allowNewTrack" value="" />
           <div class="full row"><button type="submit">${isEdit ? "Save Changes" : "Create Item"}</button></div>
           <div class="error full" id="form-error"></div>
@@ -3204,7 +3259,11 @@ function renderDetail() {
           </section>
           <section class="detail-block">
             <h3>Workstreams</h3>
-            ${renderWorkstreams(item.workstreams || item.subTasks)}
+            ${renderWorkstreams(item.workstreams || [])}
+          </section>
+          <section class="detail-block">
+            <h3>Sub-tasks</h3>
+            ${renderSubTaskChecklist(item.subTasks || [], { disabled: true })}
           </section>
           <div class="row">${canEdit() ? `<button data-weekly="${item.id}">Add Update</button>` : ""}${canArchive() && !item.archived ? `<button class="danger" id="archive-item">Archive</button>` : ""}${canAdmin() ? `<button class="danger" id="delete-item">Delete Update Item</button>` : ""}</div>
           ${state.archivePrompt ? html`
@@ -3438,6 +3497,7 @@ document.addEventListener("submit", async (event) => {
     const payload = Object.fromEntries(new FormData(event.target));
     payload.productWorkstream = payload.newProductWorkstream?.trim() || payload.existingProductWorkstream?.trim() || payload.productWorkstream?.trim();
     payload.isQaIssue = form.isQaIssue?.checked || false;
+    payload.subTaskStates = subTaskStatePayload(form);
     const itemId = state.modal.item?.id;
     try {
       setFormBusy(form, true);
@@ -3458,6 +3518,7 @@ document.addEventListener("submit", async (event) => {
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.target));
     const entryId = state.modal.entry?.id;
+    payload.subTaskStates = subTaskStatePayload(event.target);
     if (needsBlockerDelay(payload.status) && !String(payload.blockerRisk || "").trim()) {
       document.querySelector("#form-error").textContent = "Blocker / Delay is required when status is Blocked or Delay.";
       return;
@@ -3481,11 +3542,7 @@ document.addEventListener("submit", async (event) => {
   if (event.target.matches("#pm-accounts-form")) {
     event.preventDefault();
     const form = event.target;
-    const pmAccounts = [...form.querySelectorAll("[data-account-row]")].map((row) => ({
-      accountId: row.querySelector("[name='accountId']").value,
-      pmProfile: row.querySelector("[name='pmProfile']").value,
-      active: row.querySelector("[name='active']").checked,
-    }));
+    const pmAccounts = readPmAccountRowsFromDom();
     try {
       const data = await api("/api/pm-accounts", {
         method: "PUT",
@@ -3581,11 +3638,27 @@ document.addEventListener("click", (event) => {
     });
   }
   if (event.target.matches("#add-pm-account")) {
+    state.config.pmAccounts = readPmAccountRowsFromDom();
     state.config.pmAccounts = [
       ...state.config.pmAccounts,
-      { accountId: nextPmAccountId(), pmProfile: "", active: true },
+      { accountId: nextAccountId("pm"), pmProfile: "", active: true },
     ];
     render();
+  }
+  if (event.target.matches("#add-qa-account")) {
+    state.config.pmAccounts = readPmAccountRowsFromDom();
+    state.config.pmAccounts = [
+      ...state.config.pmAccounts,
+      { accountId: nextAccountId("qa"), pmProfile: "", active: true },
+    ];
+    render();
+  }
+  if (event.target.matches("[data-remove-account]")) {
+    const row = event.target.closest("[data-account-row]");
+    const accountId = row?.querySelector("[name='accountId']")?.value || "this account";
+    if (!row || !window.confirm(`Remove ${accountId} from PM Account Mapping? Existing updates will remain unchanged.`)) return;
+    row.remove();
+    state.config.pmAccounts = readPmAccountRowsFromDom();
   }
   if (event.target.matches("#add-track-category")) {
     addTrackCategoryToForm();

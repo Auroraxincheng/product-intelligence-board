@@ -162,13 +162,41 @@ function normalizeLinks(value) {
     });
 }
 
-function normalizeSubTasks(value) {
-  if (Array.isArray(value)) return value.filter(Boolean);
+function normalizeSubTasks(value, previous = []) {
+  const previousByTitle = new Map((previous || []).map((task) => [workstreamKey(task.title || task), task]));
+  if (Array.isArray(value)) return value
+    .filter(Boolean)
+    .map((task) => {
+      const title = String(task.title || task).trim();
+      const previousTask = previousByTitle.get(workstreamKey(title));
+      return {
+        id: task.id || previousTask?.id || crypto.randomUUID(),
+        title,
+        done: Boolean(task.done ?? previousTask?.done),
+      };
+    })
+    .filter((task) => task.title);
   return String(value || "")
     .split("\n")
     .map((title) => title.trim())
     .filter(Boolean)
-    .map((title) => ({ id: crypto.randomUUID(), title, done: false }));
+    .map((title) => {
+      const previousTask = previousByTitle.get(workstreamKey(title));
+      return { id: previousTask?.id || crypto.randomUUID(), title, done: Boolean(previousTask?.done) };
+    });
+}
+
+function applySubTaskStates(item, states = []) {
+  if (!Array.isArray(states) || !states.length) return;
+  const doneById = new Map(states.map((state) => [String(state.id || ""), Boolean(state.done)]));
+  const doneByTitle = new Map(states.map((state) => [workstreamKey(state.title), Boolean(state.done)]));
+  item.subTasks = (item.subTasks || []).map((task) => {
+    const id = String(task.id || "");
+    const titleKey = workstreamKey(task.title);
+    if (doneById.has(id)) return { ...task, done: doneById.get(id) };
+    if (doneByTitle.has(titleKey)) return { ...task, done: doneByTitle.get(titleKey) };
+    return task;
+  });
 }
 
 function normalizeModuleLinks(value) {
@@ -240,8 +268,10 @@ function normalizePmProfile(value) {
 }
 
 function accountSortKey(account) {
-  const match = normalizeAccountId(account.accountId).match(/^pm(\d+)$/);
-  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+  const match = normalizeAccountId(account.accountId).match(/^(pm|qa)(\d+)$/);
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  const prefixOrder = match[1] === "pm" ? 0 : 1;
+  return prefixOrder * 10000 + Number(match[2]);
 }
 
 function seedData() {
@@ -853,10 +883,11 @@ export function createStore(filePath) {
         targetCompletionDate: payload.targetCompletionDate || "",
         relatedLinks: normalizeLinks(payload.relatedLinks),
         workstreams: normalizeWorkstreams(payload.productWorkstream || payload.newProductWorkstream || payload.existingProductWorkstream),
-        subTasks: normalizeSubTasks(payload.subTasks),
+        subTasks: normalizeSubTasks(payload.subTasks, item.subTasks),
         lastUpdatedBy: actor,
         lastUpdatedAt: nowIso(),
       });
+      applySubTaskStates(item, payload.subTaskStates);
       applyDoneState(item, payload.status);
       await writeData(data);
       return item;
@@ -898,6 +929,7 @@ export function createStore(filePath) {
         lastUpdatedAt: timestamp,
       };
       data.weeklyUpdates.unshift(entry);
+      applySubTaskStates(item, payload.subTaskStates);
       item.status = payload.status;
       item.lastUpdatedBy = actor;
       item.lastUpdatedAt = timestamp;
@@ -926,6 +958,7 @@ export function createStore(filePath) {
         lastUpdatedBy: actor,
         lastUpdatedAt: timestamp,
       });
+      applySubTaskStates(item, payload.subTaskStates);
       recalculateItemFromEntries(data, item);
       await writeData(data);
       return entry;

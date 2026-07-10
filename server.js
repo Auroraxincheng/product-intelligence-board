@@ -353,7 +353,7 @@ async function handleApi(req, res, pathname) {
     for (const account of pmAccounts) {
       const accountId = String(account.accountId || "").trim().toLowerCase();
       if (!accountId) return sendJson(res, 400, { error: "PM account id is required." });
-      if (!/^pm\d+$/i.test(accountId)) return sendJson(res, 400, { error: `PM account id must look like pm01, pm02, pm09. Invalid: ${account.accountId}.` });
+      if (!/^(pm|qa)\d+$/i.test(accountId)) return sendJson(res, 400, { error: `Account id must look like pm01, pm02, qa01, qa02. Invalid: ${account.accountId}.` });
       if (seen.has(accountId)) return sendJson(res, 400, { error: `Duplicate PM account id: ${accountId}.` });
       seen.add(accountId);
       if (!String(account.pmProfile || "").trim()) return sendJson(res, 400, { error: `PM name is required for ${accountId}.` });
