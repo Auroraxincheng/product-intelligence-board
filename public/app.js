@@ -3508,7 +3508,7 @@ document.addEventListener("submit", async (event) => {
   if (event.target.matches("#item-form")) {
     event.preventDefault();
     const form = event.target;
-    syncProductWorkstreamField();
+    syncProductWorkstreamField({ applyOwnerDefault: false });
     if (!form.productWorkstream.value.trim()) {
       document.querySelector("#form-error").textContent = "Product / Workstream is required.";
       return;
@@ -3780,12 +3780,12 @@ function updateProductWorkstreamSelect() {
   syncProductWorkstreamField();
 }
 
-function syncProductWorkstreamField() {
+function syncProductWorkstreamField({ applyOwnerDefault = true } = {}) {
   const form = document.querySelector("#item-form");
   if (!form?.productWorkstream) return;
   const created = form.newProductWorkstream?.value.trim();
   form.productWorkstream.value = created || form.existingProductWorkstream?.value || "";
-  applyMatchedOwnerDefault();
+  if (applyOwnerDefault) applyMatchedOwnerDefault();
 }
 
 function applyMatchedOwnerDefault() {
